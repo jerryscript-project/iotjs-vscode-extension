@@ -1,26 +1,32 @@
-// Copyright JS Foundation and other contributors, http://js.foundation
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018-present Samsung Electronics Co., Ltd. and other contributors
+ * Copyright JS Foundation and other contributors, http://js.foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { ByteConfig } from './JerryInterfaces';
 
 /**
  * Calculates expected byte length given a format string
+ *
+ * @param config  Byte order / size info
+ * @param format  String of 'B', 'C', and 'I' characters
  */
 export const getFormatSize = (config: ByteConfig, format: string) => {
   let length = 0;
-  for (let i = 0; i < format.length; i++) {
-    switch (format[i]) {
+  format.split('').forEach(f => {
+    switch (f) {
       case 'B':
         length++;
         break;
@@ -36,7 +42,7 @@ export const getFormatSize = (config: ByteConfig, format: string) => {
       default:
         throw new Error('unsupported message format');
     }
-  }
+  });
   return length;
 };
 
@@ -95,7 +101,7 @@ export const setUint32 = (littleEndian: boolean, array: Uint8Array, offset: numb
  * @param message Array containing message
  * @param offset  Optional offset at which to start reading
  */
-export const decodeMessage = (config: ByteConfig, format: string, message: Uint8Array, offset = 0) => {
+export const decodeMessage = (config: ByteConfig, format: string, message: Uint8Array, offset: number = 0) => {
   // Format: B=byte I=int32 C=cpointer
   // Returns an array of decoded numbers
 
@@ -106,13 +112,13 @@ export const decodeMessage = (config: ByteConfig, format: string, message: Uint8
     throw new Error('received message too short');
   }
 
-  for (let i = 0; i < format.length; i++) {
-    if (format[i] === 'B') {
+  format.split('').forEach(f => {
+    if (f === 'B') {
       result.push(message[offset++]);
-      continue;
+      return;
     }
 
-    if (format[i] === 'C' && config.cpointerSize === 2) {
+    if (f === 'C' && config.cpointerSize === 2) {
       if (config.littleEndian) {
         value = message[offset] | (message[offset + 1] << 8);
       } else {
@@ -121,17 +127,17 @@ export const decodeMessage = (config: ByteConfig, format: string, message: Uint8
 
       result.push(value);
       offset += 2;
-      continue;
+      return;
     }
 
-    if (format[i] !== 'I' && (format[i] !== 'C' || config.cpointerSize !== 4)) {
+    if (f !== 'I' && (f !== 'C' || config.cpointerSize !== 4)) {
       throw new Error('unexpected decode request');
     }
 
     value = getUint32(config.littleEndian, message, offset);
     result.push(value);
     offset += 4;
-  }
+  });
 
   return result;
 };
@@ -154,18 +160,18 @@ export const encodeMessage = (config: ByteConfig, format: string, values: Array<
     throw new Error('not enough values supplied');
   }
 
-  for (let i = 0; i < format.length; i++) {
+  format.split('').forEach((f, i) => {
     const value = values[i];
 
-    if (format[i] === 'B') {
+    if (f === 'B') {
       if ((value & 0xff) !== value) {
         throw new Error('expected byte value');
       }
       message[offset++] = value;
-      continue;
+      return;
     }
 
-    if (format[i] === 'C' && config.cpointerSize === 2) {
+    if (f === 'C' && config.cpointerSize === 2) {
       if ((value & 0xffff) !== value) {
         throw new Error('expected two-byte value');
       }
@@ -179,10 +185,10 @@ export const encodeMessage = (config: ByteConfig, format: string, values: Array<
         message[offset++] = highByte;
         message[offset++] = lowByte;
       }
-      continue;
+      return;
     }
 
-    if (format[i] !== 'I' && (format[i] !== 'C' || config.cpointerSize !== 4)) {
+    if (f !== 'I' && (f !== 'C' || config.cpointerSize !== 4)) {
       throw new Error('unexpected encode request');
     }
 
@@ -192,7 +198,7 @@ export const encodeMessage = (config: ByteConfig, format: string, values: Array<
 
     setUint32(config.littleEndian, message, offset, value);
     offset += 4;
-  }
+  });
 
   return message;
 };
@@ -235,10 +241,10 @@ export const cesu8ToString = (array: Uint8Array | undefined) => {
  * @param offset Optional number of padding bytes to allocate at the beginning
  */
 export const stringToCesu8 = (str: string, offset: number = 0) => {
-  const length = str.length;
-  let byteLength = length;
-  for (let i = 0; i < length; i++) {
-    const chr = str.charCodeAt(i);
+  let byteLength = str.length;
+
+  str.split('').forEach(s => {
+    const chr = str.charCodeAt(0);
 
     if (chr > 0x7ff) {
       byteLength++;
@@ -247,11 +253,11 @@ export const stringToCesu8 = (str: string, offset: number = 0) => {
     if (chr >= 0x7f) {
       byteLength++;
     }
-  }
+  });
 
   const result = new Uint8Array(offset + byteLength);
-  for (let i = 0; i < length; i++) {
-    const chr = str.charCodeAt(i);
+  str.split('').forEach(s => {
+    const chr = str.charCodeAt(0);
 
     if (chr > 0x7ff) {
       result[offset++] = 0xe0 | (chr >> 12);
@@ -263,7 +269,8 @@ export const stringToCesu8 = (str: string, offset: number = 0) => {
     } else {
       result[offset++] = chr;
     }
-  }
+  });
+
   return result;
 };
 
