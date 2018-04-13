@@ -1,0 +1,87 @@
+/*
+ * Copyright 2018-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+// Expected JerryScript debugger protocol version.
+export const JERRY_DEBUGGER_VERSION = 2;
+
+// Packages sent from the server to the client.
+export enum SERVER {
+  JERRY_DEBUGGER_CONFIGURATION = 1,
+  JERRY_DEBUGGER_PARSE_ERROR = 2,
+  JERRY_DEBUGGER_BYTE_CODE_CP = 3,
+  JERRY_DEBUGGER_PARSE_FUNCTION = 4,
+  JERRY_DEBUGGER_BREAKPOINT_LIST = 5,
+  JERRY_DEBUGGER_BREAKPOINT_OFFSET_LIST = 6,
+  JERRY_DEBUGGER_SOURCE_CODE = 7,
+  JERRY_DEBUGGER_SOURCE_CODE_END = 8,
+  JERRY_DEBUGGER_SOURCE_CODE_NAME = 9,
+  JERRY_DEBUGGER_SOURCE_CODE_NAME_END = 10,
+  JERRY_DEBUGGER_FUNCTION_NAME = 11,
+  JERRY_DEBUGGER_FUNCTION_NAME_END = 12,
+  JERRY_DEBUGGER_WAITING_AFTER_PARSE = 13,
+  JERRY_DEBUGGER_RELEASE_BYTE_CODE_CP = 14,
+  JERRY_DEBUGGER_MEMSTATS_RECEIVE = 15,
+  JERRY_DEBUGGER_BREAKPOINT_HIT = 16,
+  JERRY_DEBUGGER_EXCEPTION_HIT = 17,
+  JERRY_DEBUGGER_EXCEPTION_STR = 18,
+  JERRY_DEBUGGER_EXCEPTION_STR_END = 19,
+  JERRY_DEBUGGER_BACKTRACE = 20,
+  JERRY_DEBUGGER_BACKTRACE_END = 21,
+  JERRY_DEBUGGER_EVAL_RESULT = 22,
+  JERRY_DEBUGGER_EVAL_RESULT_END = 23,
+  JERRY_DEBUGGER_WAIT_FOR_SOURCE = 24,
+  JERRY_DEBUGGER_OUTPUT_RESULT = 25,
+  JERRY_DEBUGGER_OUTPUT_RESULT_END = 26
+}
+
+// Subtypes of the eval message result.
+export enum EVAL_SUBTYPE {
+  JERRY_DEBUGGER_EVAL_OK = 1,
+  JERRY_DEBUGGER_EVAL_ERROR = 2
+}
+
+// Subtypes of the output message result.
+export enum OUTPUT_SUBTYPE {
+  JERRY_DEBUGGER_OUTPUT_OK = 1,
+  JERRY_DEBUGGER_OUTPUT_ERROR = 2,
+  JERRY_DEBUGGER_OUTPUT_WARNING = 3,
+  JERRY_DEBUGGER_OUTPUT_DEBUG = 4,
+  JERRY_DEBUGGER_OUTPUT_TRACE = 5
+}
+
+// Packages sent from the client to the server.
+export enum CLIENT {
+  JERRY_DEBUGGER_FREE_BYTE_CODE_CP = 1,
+  JERRY_DEBUGGER_UPDATE_BREAKPOINT = 2,
+  JERRY_DEBUGGER_EXCEPTION_CONFIG = 3,
+  JERRY_DEBUGGER_PARSER_CONFIG = 4,
+  JERRY_DEBUGGER_MEMSTATS = 5,
+  JERRY_DEBUGGER_STOP = 6,
+  JERRY_DEBUGGER_PARSER_RESUME = 7,
+  JERRY_DEBUGGER_CLIENT_SOURCE = 8,
+  JERRY_DEBUGGER_CLIENT_SOURCE_PART = 9,
+  JERRY_DEBUGGER_NO_MORE_SOURCES = 10,
+  JERRY_DEBUGGER_CONTEXT_RESET = 11,
+  JERRY_DEBUGGER_CONTINUE = 12,
+  JERRY_DEBUGGER_STEP = 13,
+  JERRY_DEBUGGER_NEXT = 14,
+  JERRY_DEBUGGER_FINISH = 15,
+  JERRY_DEBUGGER_GET_BACKTRACE = 16,
+  JERRY_DEBUGGER_EVAL = 17,
+  JERRY_DEBUGGER_EVAL_PART = 18
+}
