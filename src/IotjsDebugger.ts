@@ -30,7 +30,7 @@ class IotjsDebugSession extends LoggingDebugSession {
   private _args: IAttachRequestArguments;
   private _debugLog: boolean = false;
 
-  public constructor () {
+  public constructor() {
     super('iotjs-debug.txt');
 
     // The debugger uses zero-based lines and columns.
@@ -40,7 +40,7 @@ class IotjsDebugSession extends LoggingDebugSession {
     logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/false);
   }
 
-  protected threadsRequest (response: DebugProtocol.ThreadsResponse): void {
+  protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     // Runtime supports now threads so just return a default thread.
     response.body = {
       threads: [
@@ -54,7 +54,7 @@ class IotjsDebugSession extends LoggingDebugSession {
    * The 'initialize' request is the first request called by the frontend
    * to interrogate the debug adapter about the features it provides.
    */
-  protected initializeRequest (response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+  protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
     this.log('initializeRequest');
 
     // This debug adapter implements the configurationDoneRequest.
@@ -68,13 +68,13 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendEvent(new InitializedEvent());
   }
 
-  protected configurationDoneRequest (response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+  protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
     this.log('configurationDoneRequest');
 
     this.sendResponse(response);
   }
 
-  protected attachRequest (response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
+  protected attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
     this.log('attachRequest');
 
     if (!args.address || args.address === '') {
@@ -95,65 +95,68 @@ class IotjsDebugSession extends LoggingDebugSession {
     this._args = args;
     this._debugLog = args.debugLog || false;
 
+    // FIXME: this is just a tmporary check for now.
+    this.log(JSON.stringify(this._args));
+
     this.sendResponse(response);
     this.sendEvent(new InitializedEvent());
   }
 
-  protected launchRequest (response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
+  protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
     this.log('launchRequest');
 
     this.sendErrorResponse(response, 0, 'Launching is not supported. Use Attach.');
   }
 
-  protected disconnectRequest (response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+  protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
     this.log('disconnectRequest');
 
     this.sendResponse(response);
   }
 
-  protected restartRequest (response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments): void {
+  protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments): void {
     this.log('restartRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected continueRequest (response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+  protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
     this.log('continueRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected nextRequest (response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
+  protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
     this.log('nextRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected stepInRequest (response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
+  protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
     this.log('stepInRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected stepOutRequest (response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
+  protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
     this.log('stepOutRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected pauseRequest (response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
+  protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
     this.log('pauseRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  protected setBreakPointsRequest (response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+  protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
     this.log('setBreakPointsRequest: Not implemented yet');
 
     this.sendResponse(response);
   }
 
-  private log (message: string): void {
+  private log(message: string): void {
     if (this._debugLog) {
       this.sendEvent(new OutputEvent(`[DS] ${message}\n`, 'console'));
     }
