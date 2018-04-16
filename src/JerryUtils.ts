@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { ByteConfig } from './JerryInterfaces';
+export interface ByteConfig {
+  cpointerSize: number;
+  littleEndian: boolean;
+}
 
 /**
  * Calculates expected byte length given a format string
