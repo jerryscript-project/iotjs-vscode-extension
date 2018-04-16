@@ -21,6 +21,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
+import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 
 class IotjsDebugSession extends LoggingDebugSession {
 
@@ -29,6 +30,7 @@ class IotjsDebugSession extends LoggingDebugSession {
 
   private _args: IAttachRequestArguments;
   private _debugLog: boolean = false;
+  private _debuggerClient: JerryDebuggerClient;
 
   public constructor() {
     super('iotjs-debug.txt');
@@ -97,6 +99,11 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     // FIXME: this is just a tmporary check for now.
     this.log(JSON.stringify(this._args));
+
+    this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{host: args.address, port: args.port});
+    this._debuggerClient.connect().then(() => {
+      this.log('Connected....');
+    }).catch(error => this.log(error));
 
     this.sendResponse(response);
     this.sendEvent(new InitializedEvent());
