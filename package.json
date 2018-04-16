@@ -50,7 +50,8 @@
   "dependencies": {
     "babel-preset-env": "^1.6.1",
     "vscode-debugadapter": "^1.28.0",
-    "vscode-debugprotocol": "^1.28.0"
+    "vscode-debugprotocol": "^1.28.0",
+    "ws": "^5.1.1"
   },
   "activationEvents": [
     "onCommand:iotjs-debug.initialConfigurations"
