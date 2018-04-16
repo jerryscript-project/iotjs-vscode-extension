@@ -16,7 +16,7 @@ jobs:
   include:
   - stage: Check
     script:
-    - npm run travis:check-signed-off
+    - ./tools/check_signed_off.sh
   - stage: Build
     script:
     - npm run compile
