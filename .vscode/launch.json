@@ -9,6 +9,7 @@
             "name": "Debug Server",
             "type": "node",
             "request": "launch",
+            "protocol": "inspector",
             "runtimeArgs": [ "--nolazy" ],
             "program": "${workspaceRoot}/src/IotjsDebugger.ts",
             "stopOnEntry": false,

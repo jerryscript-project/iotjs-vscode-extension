@@ -17,11 +17,13 @@
 'use strict';
 
 import {
-  LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread
+  LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread,
+  StoppedEvent, ContinuedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
+import { JerryDebugProtocolDelegate, JerryDebugProtocolHandler } from './JerryProtocolHandler';
 
 class IotjsDebugSession extends LoggingDebugSession {
 
@@ -31,6 +33,7 @@ class IotjsDebugSession extends LoggingDebugSession {
   private _args: IAttachRequestArguments;
   private _debugLog: boolean = false;
   private _debuggerClient: JerryDebuggerClient;
+  private _protocolhandler: JerryDebugProtocolHandler;
 
   public constructor() {
     super('iotjs-debug.txt');
@@ -73,6 +76,7 @@ class IotjsDebugSession extends LoggingDebugSession {
   protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
     this.log('configurationDoneRequest');
 
+    super.configurationDoneRequest(response, args);
     this.sendResponse(response);
   }
 
@@ -100,10 +104,35 @@ class IotjsDebugSession extends LoggingDebugSession {
     // FIXME: this is just a tmporary check for now.
     this.log(JSON.stringify(this._args));
 
-    this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{host: args.address, port: args.port});
-    this._debuggerClient.connect().then(() => {
-      this.log('Connected....');
-    }).catch(error => this.log(error));
+    const onBreakpointHit = ref => {
+      this.sendEvent(new StoppedEvent('step', IotjsDebugSession.THREAD_ID));
+      this.log(`Breakpoint hit: ${ref.breakpoint.toString()}`);
+    };
+
+    const onResume = () => {
+      this.sendEvent(new ContinuedEvent(IotjsDebugSession.THREAD_ID));
+    };
+
+    const protocolDelegate = <JerryDebugProtocolDelegate>{
+      onBreakpointHit,
+      onResume
+    };
+    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate);
+
+    const options = <JerryDebuggerOptions>{
+      delegate: this._protocolhandler,
+      host: args.address,
+      port: args.port
+    };
+
+    this._debuggerClient = new JerryDebuggerClient(options);
+    this._protocolhandler.debuggerClient = this._debuggerClient;
+
+    this._debuggerClient.connect()
+      .then(() => {
+        this.log('Connected....');
+      })
+      .catch(error => this.log(error));
 
     this.sendResponse(response);
     this.sendEvent(new InitializedEvent());
@@ -118,6 +147,8 @@ class IotjsDebugSession extends LoggingDebugSession {
   protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
     this.log('disconnectRequest');
 
+    this._debuggerClient.disconnect();
+
     this.sendResponse(response);
   }
 
@@ -128,31 +159,41 @@ class IotjsDebugSession extends LoggingDebugSession {
   }
 
   protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-    this.log('continueRequest: Not implemented yet');
+    this.log('continueRequest');
+
+    this._protocolhandler.resume();
 
     this.sendResponse(response);
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-    this.log('nextRequest: Not implemented yet');
+    this.log('nextRequest');
+
+    this._protocolhandler.stepOver();
 
     this.sendResponse(response);
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
-    this.log('stepInRequest: Not implemented yet');
+    this.log('stepInRequest');
+
+    this._protocolhandler.stepInto();
 
     this.sendResponse(response);
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
-    this.log('stepOutRequest: Not implemented yet');
+    this.log('stepOutRequest');
+
+    this._protocolhandler.stepOut();
 
     this.sendResponse(response);
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
-    this.log('pauseRequest: Not implemented yet');
+    this.log('pauseRequest');
+
+    this._protocolhandler.pause();
 
     this.sendResponse(response);
   }
@@ -165,6 +206,7 @@ class IotjsDebugSession extends LoggingDebugSession {
 
   private log(message: string): void {
     if (this._debugLog) {
+      console.log(message);
       this.sendEvent(new OutputEvent(`[DS] ${message}\n`, 'console'));
     }
   }

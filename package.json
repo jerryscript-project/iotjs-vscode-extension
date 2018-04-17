@@ -54,6 +54,7 @@
     "ws": "^5.1.1"
   },
   "activationEvents": [
+    "onDebug",
     "onCommand:iotjs-debug.initialConfigurations"
   ],
   "main": "./out/extension.js",
