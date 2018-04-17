@@ -244,10 +244,11 @@ export const cesu8ToString = (array: Uint8Array | undefined) => {
  * @param offset Optional number of padding bytes to allocate at the beginning
  */
 export const stringToCesu8 = (str: string, offset: number = 0) => {
-  let byteLength = str.length;
+  const length = str.length;
+  let byteLength = length;
 
-  str.split('').forEach(s => {
-    const chr = str.charCodeAt(0);
+  for (let i = 0; i < length; i++) {
+    const chr = str.charCodeAt(i);
 
     if (chr > 0x7ff) {
       byteLength++;
@@ -256,11 +257,11 @@ export const stringToCesu8 = (str: string, offset: number = 0) => {
     if (chr >= 0x7f) {
       byteLength++;
     }
-  });
+  }
 
   const result = new Uint8Array(offset + byteLength);
-  str.split('').forEach(s => {
-    const chr = str.charCodeAt(0);
+  for (let i = 0; i < length; i++) {
+    const chr = str.charCodeAt(i);
 
     if (chr > 0x7ff) {
       result[offset++] = 0xe0 | (chr >> 12);
@@ -272,7 +273,7 @@ export const stringToCesu8 = (str: string, offset: number = 0) => {
     } else {
       result[offset++] = chr;
     }
-  });
+  }
 
   return result;
 };
