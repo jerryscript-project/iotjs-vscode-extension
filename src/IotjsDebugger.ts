@@ -17,13 +17,18 @@
 'use strict';
 
 import {
-  LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread,
-  StoppedEvent, ContinuedEvent
+  LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread, Source,
+  StoppedEvent, ContinuedEvent, StackFrame
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import * as Fs from 'fs';
+import * as Path from 'path';
 import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
-import { JerryDebugProtocolDelegate, JerryDebugProtocolHandler } from './JerryProtocolHandler';
+import {
+  JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed
+} from './JerryProtocolHandler';
+import { Breakpoint } from './JerryBreakpoints';
 
 class IotjsDebugSession extends LoggingDebugSession {
 
@@ -34,6 +39,8 @@ class IotjsDebugSession extends LoggingDebugSession {
   private _debugLog: boolean = false;
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
+
+  private _backtrace: Array<Breakpoint> = [];
 
   public constructor() {
     super('iotjs-debug.txt');
@@ -62,6 +69,8 @@ class IotjsDebugSession extends LoggingDebugSession {
   protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
     this.log('initializeRequest');
 
+    this.sendEvent(new InitializedEvent());
+
     // This debug adapter implements the configurationDoneRequest.
     response.body.supportsConfigurationDoneRequest = true;
     response.body.supportsFunctionBreakpoints = false;
@@ -70,7 +79,6 @@ class IotjsDebugSession extends LoggingDebugSession {
     response.body.supportsRestartRequest = true;
 
     this.sendResponse(response);
-    this.sendEvent(new InitializedEvent());
   }
 
   protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
@@ -101,37 +109,43 @@ class IotjsDebugSession extends LoggingDebugSession {
     this._args = args;
     this._debugLog = args.debugLog || false;
 
-    // FIXME: this is just a tmporary check for now.
-    this.log(JSON.stringify(this._args));
+    const onBacktrace = backtarce => {
+      this.log('onBacktrace');
+      this._backtrace = backtarce;
+      this.sendEvent(new StoppedEvent('breakpoint', IotjsDebugSession.THREAD_ID));
+    };
 
     const onBreakpointHit = ref => {
-      this.sendEvent(new StoppedEvent('step', IotjsDebugSession.THREAD_ID));
-      this.log(`Breakpoint hit: ${ref.breakpoint.toString()}`);
+      this.log('onBreakpointHit');
+      this._protocolhandler.requestBacktrace();
     };
 
     const onResume = () => {
       this.sendEvent(new ContinuedEvent(IotjsDebugSession.THREAD_ID));
     };
 
-    const protocolDelegate = <JerryDebugProtocolDelegate>{
-      onBreakpointHit,
-      onResume
+    const onScriptParsed = data => {
+      this.log('onScriptParsed');
+      this.handleSource(data);
     };
-    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate);
 
-    const options = <JerryDebuggerOptions>{
+    const protocolDelegate = <JerryDebugProtocolDelegate>{
+      onBacktrace,
+      onBreakpointHit,
+      onResume,
+      onScriptParsed
+    };
+
+    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate);
+    this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
       delegate: this._protocolhandler,
       host: args.address,
       port: args.port
-    };
-
-    this._debuggerClient = new JerryDebuggerClient(options);
+    });
     this._protocolhandler.debuggerClient = this._debuggerClient;
 
     this._debuggerClient.connect()
-      .then(() => {
-        this.log('Connected....');
-      })
+      .then(() => this.log(`Connected to: ${args.address}:${args.port}`))
       .catch(error => this.log(error));
 
     this.sendResponse(response);
@@ -204,9 +218,58 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+    this.log('stackTraceRequest');
+
+    const stk = this._backtrace.map((f, i) => new StackFrame(
+        i,
+        f.func.name || 'global',
+        this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
+        f.line,
+        f.func.column
+      )
+    );
+
+    response.body = {
+      stackFrames: stk,
+      totalFrames: stk.length,
+    };
+
+    this.sendResponse(response);
+  }
+
+  private handleSource(data: JerryMessageScriptParsed): void {
+    const path = `${this._args.localRoot}/${this.pathToBasename(data.name)}`;
+    const src = this._protocolhandler.getSource(data.id);
+
+    const write = c => Fs.writeSync(Fs.openSync(path, 'w'), c);
+
+    if (Fs.existsSync(path)) {
+      const content = Fs.readFileSync(path, {
+        encoding: 'utf8',
+        flag: 'r'
+      });
+
+      if (content !== src) {
+        write(src);
+      }
+    } else {
+      write(src);
+    }
+  }
+
+  private pathToSource(path): Source {
+    return new Source(this.pathToBasename(path), path);
+  }
+
+  private pathToBasename(path: string): string {
+    if (path === '' || path === undefined) path = 'debug_eval.js';
+    return Path.basename(path);
+
+  }
+
   private log(message: string): void {
     if (this._debugLog) {
-      console.log(message);
       this.sendEvent(new OutputEvent(`[DS] ${message}\n`, 'console'));
     }
   }
