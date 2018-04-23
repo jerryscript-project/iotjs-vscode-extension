@@ -261,7 +261,7 @@ suite('Jerry Utils', () => {
 
     test('returns empty array for empty string, and vice versa', () => {
       assert.strictEqual(cesu8ToString(new Uint8Array(0)), '');
-      assert.deepStrictEqual(stringToCesu8('', 5, defConfig), new Uint8Array(0));
+      assert.deepStrictEqual(stringToCesu8('', 0, defConfig), new Uint8Array(0));
     });
 
     test('returns ASCII from ASCII', () => {
@@ -271,7 +271,7 @@ suite('Jerry Utils', () => {
         array[i] = sentence.charCodeAt(i);
       }
       assert.deepStrictEqual(cesu8ToString(array), sentence);
-      assert.deepStrictEqual(stringToCesu8(sentence, 5, defConfig), array);
+      assert.deepStrictEqual(stringToCesu8(sentence, 0, defConfig), array);
     });
 
     test('acts like UTF-8 for two-byte encodings', () => {
@@ -281,8 +281,8 @@ suite('Jerry Utils', () => {
       const highTwoByte = Uint8Array.from([0xc0 + 0x1f, 0x80 + 0x3f]);
       assert.deepStrictEqual(cesu8ToString(lowTwoByte), String.fromCharCode(0x80));
       assert.deepStrictEqual(cesu8ToString(highTwoByte), String.fromCharCode(0x7ff));
-      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x80), 5, defConfig), lowTwoByte);
-      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x7ff), 5, defConfig), highTwoByte);
+      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x80), 0, defConfig), lowTwoByte);
+      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x7ff), 0, defConfig), highTwoByte);
     });
 
     test('acts like UTF-8 for three-byte encodings', () => {
@@ -292,8 +292,8 @@ suite('Jerry Utils', () => {
       const highThreeByte = Uint8Array.from([0xe0 + 0x0f, 0x80 + 0x3f, 0x80 + 0x3f]);
       assert.deepStrictEqual(cesu8ToString(lowThreeByte), String.fromCharCode(0x0800));
       assert.deepStrictEqual(cesu8ToString(highThreeByte), String.fromCharCode(0xffff));
-      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x0800), 5, defConfig), lowThreeByte);
-      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0xffff), 5, defConfig), highThreeByte);
+      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0x0800), 0, defConfig), lowThreeByte);
+      assert.deepStrictEqual(stringToCesu8(String.fromCharCode(0xffff), 0, defConfig), highThreeByte);
     });
 
     test('decodes UTF-16 surrogate pairs', () => {
@@ -306,7 +306,7 @@ suite('Jerry Utils', () => {
         0xe0 + 0x0d, 0x80 + 0x38, 0x80 + 0x02,
       ]);
       assert.deepStrictEqual(cesu8ToString(surrogatePairBytes), '😂');
-      assert.deepStrictEqual(stringToCesu8('😂', 5, defConfig), surrogatePairBytes);
+      assert.deepStrictEqual(stringToCesu8('😂', 0, defConfig), surrogatePairBytes);
     });
   });
 
