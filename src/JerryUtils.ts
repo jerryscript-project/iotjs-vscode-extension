@@ -243,7 +243,7 @@ export const cesu8ToString = (array: Uint8Array | undefined) => {
  * @param str String to convert
  * @param offset Optional number of padding bytes to allocate at the beginning
  */
-export const stringToCesu8 = (str: string, offset: number = 0) => {
+export const stringToCesu8 = (str: string, offset: number = 0, config: ByteConfig) => {
   const length = str.length;
   let byteLength = length;
 
@@ -260,6 +260,8 @@ export const stringToCesu8 = (str: string, offset: number = 0) => {
   }
 
   const result = new Uint8Array(offset + byteLength);
+  setUint32(config.littleEndian, result, 1, byteLength);
+
   for (let i = 0; i < length; i++) {
     const chr = str.charCodeAt(i);
 
