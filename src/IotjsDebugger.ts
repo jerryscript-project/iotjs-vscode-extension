@@ -66,7 +66,9 @@ class IotjsDebugSession extends LoggingDebugSession {
    * The 'initialize' request is the first request called by the frontend
    * to interrogate the debug adapter about the features it provides.
    */
-  protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+  protected initializeRequest(
+    response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments
+  ): void {
     this.log('initializeRequest');
 
     this.sendEvent(new InitializedEvent());
@@ -81,7 +83,9 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+  protected configurationDoneRequest(
+    response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments
+  ): void {
     this.log('configurationDoneRequest');
 
     super.configurationDoneRequest(response, args);
@@ -158,7 +162,9 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendErrorResponse(response, 0, 'Launching is not supported. Use Attach.');
   }
 
-  protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+  protected disconnectRequest(
+    response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments
+  ): void {
     this.log('disconnectRequest');
 
     this._debuggerClient.disconnect();
@@ -212,7 +218,9 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+  protected setBreakPointsRequest(
+    response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments
+  ): void {
     this.log('setBreakPointsRequest: Not implemented yet');
 
     this.sendResponse(response);
