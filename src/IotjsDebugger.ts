@@ -226,7 +226,9 @@ class IotjsDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+  protected stackTraceRequest(
+    response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
+  ): void {
     this.log('stackTraceRequest');
 
     const stk = this._backtrace.map((f, i) => new StackFrame(
