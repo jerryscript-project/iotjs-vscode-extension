@@ -541,7 +541,7 @@ export class JerryDebugProtocolHandler {
     this.evalsPending++;
 
     // send an _EVAL message prefixed with the byte length, followed by _EVAL_PARTs if necessary
-    const array = stringToCesu8(expression, 1 + 4);
+    const array = stringToCesu8(expression, 1 + 4, this.byteConfig);
     const arrayLength = array.byteLength;
     const byteLength = arrayLength - 1 - 4;
     array[0] = SP.CLIENT.JERRY_DEBUGGER_EVAL;
