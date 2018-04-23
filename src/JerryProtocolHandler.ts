@@ -48,6 +48,12 @@ export interface JerryDebugProtocolDelegate {
   onError?(code: number, message: string): void;
   onResume?(): void;
   onScriptParsed?(message: JerryMessageScriptParsed): void;
+  onWaitForSource?(): JerryMessageSource;
+}
+
+export interface JerryMessageSource {
+  name: string;
+  source: string;
 }
 
 export interface JerryMessageScriptParsed {
@@ -113,6 +119,7 @@ export class JerryDebugProtocolHandler {
   private lastBreakpointExact: boolean = true;
   private activeBreakpoints: Array<Breakpoint> = [];
   private nextBreakpointIndex: number = 0;
+  private waitForSourceEnabled: boolean = false;
 
   constructor(delegate: JerryDebugProtocolDelegate) {
     this.delegate = delegate;
@@ -140,6 +147,7 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT]: this.onEvalResult,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END]: this.onEvalResult,
+      [SP.SERVER.JERRY_DEBUGGER_WAIT_FOR_SOURCE]: this.onWaitForSource
     };
   }
 
@@ -625,6 +633,42 @@ export class JerryDebugProtocolHandler {
     this.debuggerClient!.send(encodeMessage(this.byteConfig, 'B', [code]));
     if (this.delegate.onResume) {
       this.delegate.onResume();
+    }
+  }
+
+  sendClientSource(fileName, fileSourceCode) {
+    if (!this.waitForSourceEnabled) {
+      throw new Error('wait-for-source not enabled');
+    }
+
+    this.waitForSourceEnabled = false;
+    let array = stringToCesu8(`${fileName}\0${fileSourceCode}`, 5, this.byteConfig );
+    const byteLength = array.byteLength;
+
+    array[0] = SP.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
+
+    if (byteLength <= this.maxMessageSize) {
+      this.debuggerClient.send(array);
+      return true;
+    }
+
+    this.debuggerClient.send(array.slice(0, this.maxMessageSize));
+
+    let offset = this.maxMessageSize - 1;
+
+    while (offset < byteLength) {
+      array[offset] = SP.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE_PART;
+      this.debuggerClient.send(array.slice(offset, offset + this.maxMessageSize));
+      offset += this.maxMessageSize - 1;
+    }
+
+    return true;
+  }
+
+  onWaitForSource() {
+    this.waitForSourceEnabled = true;
+    if (this.delegate.onWaitForSource) {
+      this.delegate.onWaitForSource();
     }
   }
 }
