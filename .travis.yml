@@ -1,17 +1,18 @@
 language: node_js
 node_js: 8
 os: linux
+before_install:
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then
+      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
+      sh -e /etc/init.d/xvfb start;
+      sleep 3;
+    fi
 install:
   - npm install
+  - npm run vscode:prepublish
 cache:
   directories:
     - node_modules
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - libstdc++-4.9-dev
 jobs:
   include:
   - stage: Check
@@ -20,3 +21,6 @@ jobs:
   - stage: Build
     script:
     - npm run compile
+  - stage: Test
+    script:
+    - npm run test
