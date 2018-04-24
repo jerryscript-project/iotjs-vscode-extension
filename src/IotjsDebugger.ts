@@ -18,7 +18,7 @@
 
 import {
   LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread, Source,
-  StoppedEvent, ContinuedEvent, StackFrame
+  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
@@ -133,6 +133,11 @@ class IotjsDebugSession extends LoggingDebugSession {
       this.handleSource(data);
     };
 
+    const onClose = () => {
+      this.log('onClose');
+      this.sendEvent(new TerminatedEvent());
+    };
+
     const protocolDelegate = <JerryDebugProtocolDelegate>{
       onBacktrace,
       onBreakpointHit,
@@ -142,7 +147,10 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate);
     this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
-      delegate: this._protocolhandler,
+      delegate: {
+        onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
+        onClose
+      },
       host: args.address,
       port: args.port
     });
@@ -169,6 +177,7 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     this._debuggerClient.disconnect();
 
+    this.sendEvent(new TerminatedEvent());
     this.sendResponse(response);
   }
 

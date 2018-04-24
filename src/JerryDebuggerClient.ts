@@ -25,6 +25,7 @@ export interface JerryDebuggerOptions {
 
 export interface JerryDebuggerDelegate {
   onMessage: (message: Uint8Array) => void;
+  onClose?: () => void;
 }
 
 export const DEFAULT_DEBUGGER_HOST = 'localhost';
@@ -51,6 +52,7 @@ export class JerryDebuggerClient {
     this.socket = new WebSocket(`ws://${this.host}:${this.port}/jerry-debugger`);
     this.socket.binaryType = 'arraybuffer';
     this.socket.on('message', this.onMessage.bind(this));
+    this.socket.on('close', () => this.onClose());
 
     this.connectPromise = new Promise((resolve, reject) => {
       if (!this.socket) {
@@ -72,13 +74,19 @@ export class JerryDebuggerClient {
 
   disconnect() {
     if (this.socket) {
-      this.socket.terminate();
+      this.socket.close();
       this.socket = undefined;
     }
   }
 
   onMessage(data: ArrayBuffer) {
     this.delegate.onMessage(new Uint8Array(data));
+  }
+
+  onClose() {
+    if (this.delegate.onClose) {
+      this.delegate.onClose();
+    }
   }
 
   send(data: Uint8Array) {
