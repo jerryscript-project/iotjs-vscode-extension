@@ -25,6 +25,7 @@ import { JerryDebuggerClient } from './JerryDebuggerClient';
 
 export type CompressedPointer = number;
 export type ByteCodeOffset = number;
+export type LoggerFunction = (message: any) => void;
 
 export interface ParserStackFrame {
   isFunc: boolean;
@@ -121,8 +122,11 @@ export class JerryDebugProtocolHandler {
   private nextBreakpointIndex: number = 0;
   private waitForSourceEnabled: boolean = false;
 
-  constructor(delegate: JerryDebugProtocolDelegate) {
+  private log: LoggerFunction;
+
+  constructor(delegate: JerryDebugProtocolDelegate, log?: LoggerFunction) {
     this.delegate = delegate;
+    this.log = log || <any>(() => {});
 
     this.byteConfig = {
       cpointerSize: 0,
@@ -448,9 +452,9 @@ export class JerryDebugProtocolHandler {
     const breakpoint = breakpointRef.breakpoint;
 
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
-      console.log('Exception throw detected');
+      this.log('Exception throw detected');
       if (this.exceptionData) {
-        console.log('Exception hint:', cesu8ToString(this.exceptionData));
+        this.log(`Exception hint: ${cesu8ToString(this.exceptionData)}`);
         this.exceptionData = undefined;
       }
     }
@@ -464,7 +468,7 @@ export class JerryDebugProtocolHandler {
     }
 
     const atAround = breakpointRef.exact ? 'at' : 'around';
-    console.log(`Stopped ${atAround} ${breakpointInfo}${breakpoint}`);
+    this.log(`Stopped ${atAround} ${breakpointInfo}${breakpoint}`);
 
     // TODO: handle exception case differently
     if (this.delegate.onBreakpointHit) {
@@ -615,12 +619,12 @@ export class JerryDebugProtocolHandler {
   logPacket(description: string, ignorable: boolean = false) {
     // certain packets are ignored while evals are pending
     const ignored = (ignorable && this.evalsPending) ? 'Ignored: ' : '';
-    console.log(`[${ignored}${description}]`);
+    this.log(`[Protocol Handler] ${ignored}${description}`);
   }
 
   private abort(message: string) {
     if (this.delegate.onError) {
-      console.log('Abort:', message);
+      this.log(`Abort: ${message}`);
       this.delegate.onError(0, message);
     }
   }
