@@ -145,7 +145,7 @@ class IotjsDebugSession extends LoggingDebugSession {
       onScriptParsed
     };
 
-    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate);
+    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate, message => this.log(message));
     this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
       delegate: {
         onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
@@ -287,8 +287,17 @@ class IotjsDebugSession extends LoggingDebugSession {
 
   }
 
-  private log(message: string): void {
+  private log(message: any): void {
     if (this._debugLog) {
+      switch (typeof message) {
+        case 'object':
+          message = JSON.stringify(message, null, 2);
+          break;
+        default:
+          message = message.toString();
+          break;
+      }
+
       this.sendEvent(new OutputEvent(`[DS] ${message}\n`, 'console'));
     }
   }
