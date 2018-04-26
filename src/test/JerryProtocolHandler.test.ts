@@ -41,28 +41,28 @@ suite('JerryProtocolHandler', () => {
 
         test('allows otherwise valid message to be too long', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([0, 200, 4, 1, 2, 0]);
+            const array = Uint8Array.from([0, 200, 4, 1, SP.JERRY_DEBUGGER_VERSION, 0]);
             handler.onConfiguration(array);
             assert(delegate.onError.notCalled);
         });
 
         test('aborts when compressed pointer wrong size', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([0, 200, 6, 1, 2]);
+            const array = Uint8Array.from([0, 200, 6, 1, SP.JERRY_DEBUGGER_VERSION]);
             handler.onConfiguration(array);
             assert(delegate.onError.calledOnce);
         });
 
         test('aborts when version unexpected', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([0, 200, 4, 1, 3]);
+            const array = Uint8Array.from([0, 200, 4, 1, 0]);
             handler.onConfiguration(array);
             assert(delegate.onError.calledOnce);
         });
 
         test('succeeds when everything is normal', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([0, 200, 4, 1, 2]);
+            const array = Uint8Array.from([0, 200, 4, 1, SP.JERRY_DEBUGGER_VERSION]);
             handler.onConfiguration(array);
             assert(delegate.onError.notCalled);
         });
@@ -281,9 +281,9 @@ suite('JerryProtocolHandler', () => {
           (handler as any).evalResultData = undefined;
           (handler as any).evalsPending = 1;
           handler.onEvalResult(Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END,
-            'a'.charCodeAt(0), 'b'.charCodeAt(0), SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_OK]));
+            'a'.charCodeAt(0), 'b'.charCodeAt(0), SP.EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK]));
           assert(delegate.onEvalResult.calledOnce);
-          assert.strictEqual(delegate.onEvalResult.args[0][0], SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_OK);
+          assert.strictEqual(delegate.onEvalResult.args[0][0], SP.EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK);
           assert.strictEqual(delegate.onEvalResult.args[0][1], 'ab');
           assert.strictEqual((handler as any).evalResultData, undefined);
           assert.strictEqual((handler as any).evalsPending, 0);
@@ -299,9 +299,9 @@ suite('JerryProtocolHandler', () => {
           handler.onEvalResult(Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT,
             'a'.charCodeAt(0), 'b'.charCodeAt(0)]));
           handler.onEvalResult(Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END,
-            'a'.charCodeAt(0), 'b'.charCodeAt(0), SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_OK]));
+            'a'.charCodeAt(0), 'b'.charCodeAt(0), SP.EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK]));
           assert(delegate.onEvalResult.calledOnce);
-          assert.strictEqual(delegate.onEvalResult.args[0][0], SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_OK);
+          assert.strictEqual(delegate.onEvalResult.args[0][0], SP.EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK);
           assert.strictEqual(delegate.onEvalResult.args[0][1], 'abab');
           assert.strictEqual((handler as any).evalResultData, undefined);
           assert.strictEqual((handler as any).evalsPending, 0);
@@ -329,7 +329,7 @@ suite('JerryProtocolHandler', () => {
 
         test('aborts when unhandled message sent', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 200, 4, 1, 2]);
+            const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 200, 4, 1, 3]);
             handler.onMessage(array);
             assert(delegate.onError.notCalled);
             array[0] = 255;
@@ -381,7 +381,7 @@ suite('JerryProtocolHandler', () => {
           handler.evaluate('foo');
           assert(debugClient.send.calledOnce);
           assert.deepStrictEqual(debugClient.send.args[0][0], Uint8Array.from([
-            SP.CLIENT.JERRY_DEBUGGER_EVAL, 3, 0, 0, 0,
+            SP.CLIENT.JERRY_DEBUGGER_EVAL, 4, 0, 0, 0, 0,
             'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0),
           ]));
         });
@@ -398,13 +398,16 @@ suite('JerryProtocolHandler', () => {
           (handler as any).maxMessageSize = 6;
           (handler as any).debuggerClient = debugClient;
           handler.evaluate('foobar');
-          assert(debugClient.send.calledTwice);
+          assert(debugClient.send.calledThrice);
           assert.deepStrictEqual(debugClient.send.args[0][0], Uint8Array.from([
-            SP.CLIENT.JERRY_DEBUGGER_EVAL, 6, 0, 0, 0, 'f'.charCodeAt(0),
+            SP.CLIENT.JERRY_DEBUGGER_EVAL, 7, 0, 0, 0, 0,
           ]));
           assert.deepStrictEqual(debugClient.send.args[1][0], Uint8Array.from([
-            SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, 'o'.charCodeAt(0), 'o'.charCodeAt(0),
-            'b'.charCodeAt(0), 'a'.charCodeAt(0), 'r'.charCodeAt(0),
+            SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, 'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0),
+            'b'.charCodeAt(0), 'a'.charCodeAt(0),
+          ]));
+          assert.deepStrictEqual(debugClient.send.args[2][0], Uint8Array.from([
+            SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, 'r'.charCodeAt(0),
           ]));
         });
     });
