@@ -17,7 +17,7 @@
 'use strict';
 
 // Expected JerryScript debugger protocol version.
-export const JERRY_DEBUGGER_VERSION = 2;
+export const JERRY_DEBUGGER_VERSION = 3;
 
 // Packages sent from the server to the client.
 export enum SERVER {
@@ -49,8 +49,15 @@ export enum SERVER {
   JERRY_DEBUGGER_OUTPUT_RESULT_END = 26
 }
 
-// Subtypes of the eval message result.
+// Subtypes of eval.
 export enum EVAL_SUBTYPE {
+  JERRY_DEBUGGER_EVAL_EVAL = '\0',
+  JERRY_DEBUGGER_EVAL_THROW = '\1',
+  JERRY_DEBUGGER_EVAL_ABORT = '\2'
+}
+
+// Subtypes of the eval message result.
+export enum EVAL_RESULT_SUBTYPE {
   JERRY_DEBUGGER_EVAL_OK = 1,
   JERRY_DEBUGGER_EVAL_ERROR = 2
 }
