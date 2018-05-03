@@ -545,6 +545,10 @@ export class JerryDebugProtocolHandler {
     return this.activeBreakpoints[breakpointId];
   }
 
+  getActiveBreakpointsByScriptId(scriptId: number) {
+    return this.activeBreakpoints.filter(b => b.scriptId === scriptId);
+  }
+
   evaluate(expression: string) {
     if (!this.lastBreakpointHit) {
       throw new Error('attempted eval while not at breakpoint');

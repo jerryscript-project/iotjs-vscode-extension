@@ -18,7 +18,7 @@
 
 import {
   LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread, Source,
-  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent
+  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Breakpoint as AdapterBreakpoint
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
@@ -230,8 +230,55 @@ class IotjsDebugSession extends LoggingDebugSession {
   protected setBreakPointsRequest(
     response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments
   ): void {
-    this.log('setBreakPointsRequest: Not implemented yet');
+    this.log('setBreakPointsRequest');
 
+    const filename = args.source.name;
+    const clientLines = args.lines || [];
+
+    try {
+      const scriptId = this._protocolhandler.getScriptIdByName(filename);
+
+      const activeBp = this._protocolhandler.getActiveBreakpointsByScriptId(scriptId);
+      const activeBpLines = activeBp.map(b => b.line);
+      const newBp = clientLines.filter(b => activeBpLines.indexOf(b) === -1);
+      const removeBp = activeBpLines.filter(b => clientLines.indexOf(b) === -1);
+      const persistingBp = clientLines.filter(b => newBp.indexOf(b) === -1);
+
+      let newBreakpoints = [];
+      try {
+        newBreakpoints = newBp.map(b => {
+          const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
+          this._protocolhandler.updateBreakpoint(breakpoint, true);
+          return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
+        });
+      } catch (error) {
+        this.log(error.message);
+      }
+
+      try {
+          removeBp.forEach(b => {
+          const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
+          this._protocolhandler.updateBreakpoint(breakpoint, false);
+        });
+      } catch (error) {
+        this.log(error.message);
+      }
+
+      let persistingBreakpoints = [];
+      try {
+        persistingBreakpoints = persistingBp.map(b => {
+          return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
+        });
+      } catch (error) {
+        this.log(error.message);
+      }
+
+      response.body = {
+        breakpoints: [...persistingBreakpoints, ...newBreakpoints]
+      };
+    } catch (error) {
+      this.log(error.message);
+    }
     this.sendResponse(response);
   }
 
