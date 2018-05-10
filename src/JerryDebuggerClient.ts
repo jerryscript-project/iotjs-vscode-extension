@@ -89,7 +89,11 @@ export class JerryDebuggerClient {
     }
   }
 
-  send(data: Uint8Array) {
-    this.socket!.send(data);
+  send(data: Uint8Array): boolean {
+    this.socket!.send(data, () => {
+      return false;
+    });
+
+    return true;
   }
 }

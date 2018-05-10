@@ -68,6 +68,11 @@ export interface JerryMessageBreakpointHit {
   exact: boolean;
 }
 
+export interface JerryEvalResult {
+  subtype: number;
+  value: string;
+}
+
 interface ProtocolFunctionMap {
   [type: number]: (data: Uint8Array) => void;
 }
@@ -84,6 +89,21 @@ interface LineFunctionMap {
 interface ParsedSource {
   name?: string;
   source?: string;
+}
+
+class PendingRequest {
+  public data: Uint8Array;
+  public promise: Promise<any>;
+  public resolve: (arg?: any) => void;
+  public reject: (arg?: any) => void;
+
+  public constructor(data: Uint8Array) {
+    this.data = data;
+    this.promise = new Promise<any>((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+    });
+  }
 }
 
 // abstracts away the details of the protocol
@@ -123,6 +143,8 @@ export class JerryDebugProtocolHandler {
   private waitForSourceEnabled: boolean = false;
 
   private log: LoggerFunction;
+  private requestQueue: PendingRequest[];
+  private currentRequest: PendingRequest;
 
   constructor(delegate: JerryDebugProtocolDelegate, log?: LoggerFunction) {
     this.delegate = delegate;
@@ -153,6 +175,9 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END]: this.onEvalResult,
       [SP.SERVER.JERRY_DEBUGGER_WAIT_FOR_SOURCE]: this.onWaitForSource
     };
+
+    this.requestQueue = [];
+    this.currentRequest = null;
   }
 
   // FIXME: this lets test suite run for now
@@ -161,27 +186,27 @@ export class JerryDebugProtocolHandler {
     this.lastBreakpointExact;
   }
 
-  stepOver() {
-    this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_NEXT);
+  public stepOver(): Promise<any> {
+    return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_NEXT);
   }
 
-  stepInto() {
-    this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_STEP);
+  public stepInto(): Promise<any> {
+    return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_STEP);
   }
 
-  stepOut() {
-    this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_FINISH);
+  public stepOut(): Promise<any> {
+    return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_FINISH);
   }
 
-  pause() {
+  public pause(): Promise<any> {
     if (this.lastBreakpointHit) {
-      throw new Error('attempted pause while at breakpoint');
+      return Promise.reject('attempted pause while at breakpoint');
     }
-    this.debuggerClient!.send(encodeMessage(this.byteConfig, 'B', [SP.CLIENT.JERRY_DEBUGGER_STOP]));
+    return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [SP.CLIENT.JERRY_DEBUGGER_STOP]));
   }
 
-  resume() {
-    this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_CONTINUE);
+  public resume(): Promise<any> {
+    return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_CONTINUE);
   }
 
   getPossibleBreakpoints(scriptId: number, startLine: number, endLine?: number): Array<Breakpoint> {
@@ -406,7 +431,7 @@ export class JerryDebugProtocolHandler {
 
     // just patch up incoming message
     data[0] = SP.CLIENT.JERRY_DEBUGGER_FREE_BYTE_CODE_CP;
-    this.debuggerClient!.send(data);
+    this.sendSimpleRequest(data);
   }
 
   getBreakpoint(breakpointData: Array<number>) {
@@ -476,7 +501,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onBacktrace(data: Uint8Array) {
+  onBacktrace(data: Uint8Array): Breakpoint[] {
     this.logPacket('Backtrace');
     for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
       const breakpointData = this.decodeMessage('CI', data, i);
@@ -487,22 +512,41 @@ export class JerryDebugProtocolHandler {
       if (this.delegate.onBacktrace) {
         this.delegate.onBacktrace(this.backtrace);
       }
+
+      const bt = this.backtrace;
       this.backtrace = [];
+
+      return bt;
     }
+
+    return [];
   }
 
-  onEvalResult(data: Uint8Array) {
+  public onEvalResult(data: Uint8Array): JerryEvalResult {
     this.logPacket('Eval Result');
+
+    const result: JerryEvalResult = {
+      subtype: -1,
+      value: ''
+    };
+
     this.evalResultData = assembleUint8Arrays(this.evalResultData, data);
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END) {
       const subType = data[data.length - 1];
       const evalResult = cesu8ToString(this.evalResultData.slice(0, -1));
+
       if (this.delegate.onEvalResult) {
         this.delegate.onEvalResult(subType, evalResult);
       }
+
       this.evalResultData = undefined;
       this.evalsPending--;
+
+      result.subtype = subType;
+      result.value = evalResult;
     }
+
+    return result;
   }
 
   onMessage(message: Uint8Array) {
@@ -518,10 +562,27 @@ export class JerryDebugProtocolHandler {
       }
     }
 
+    const request = this.currentRequest;
     const handler = this.functionMap[message[0]];
+
     if (handler) {
-      handler.call(this, message);
+      const result = handler.call(this, message) || false;
+      if (request && result) {
+        request.resolve(result);
+
+        // Process the queued requests.
+        if (this.requestQueue.length > 0) {
+          const newRequest = this.requestQueue.shift();
+
+          if (!this.submitRequest(newRequest)) {
+            newRequest.reject('Failed to submit request.');
+          }
+        } else {
+          this.currentRequest = null;
+        }
+      }
     } else {
+      if (request) request.reject(`unhandled protocol message type: ${message[0]}`);
       this.abort(`unhandled protocol message type: ${message[0]}`);
     }
   }
@@ -530,7 +591,7 @@ export class JerryDebugProtocolHandler {
     return this.lastBreakpointHit;
   }
 
-  getScriptIdByName(name: string) {
+  public getScriptIdByName(name: string): number {
     // skip the first (dummy) source
     for (let i = 1; i < this.sources.length; i++) {
       const source: ParsedSource = this.sources[i];
@@ -545,13 +606,13 @@ export class JerryDebugProtocolHandler {
     return this.activeBreakpoints[breakpointId];
   }
 
-  getActiveBreakpointsByScriptId(scriptId: number) {
+  public getActiveBreakpointsByScriptId(scriptId: number): Breakpoint[] {
     return this.activeBreakpoints.filter(b => b.scriptId === scriptId);
   }
 
-  evaluate(expression: string) {
+  public evaluate(expression: string): Promise<any> {
     if (!this.lastBreakpointHit) {
-      throw new Error('attempted eval while not at breakpoint');
+      return Promise.reject('attempted eval while not at breakpoint');
     }
 
     this.evalsPending++;
@@ -564,60 +625,67 @@ export class JerryDebugProtocolHandler {
     setUint32(this.byteConfig.littleEndian, array, 1, byteLength);
 
     let offset = 0;
+    let request: Promise<any> = null;
     while (offset < arrayLength - 1) {
       const clamped = Math.min(arrayLength - offset, this.maxMessageSize);
-      this.debuggerClient!.send(array.slice(offset, offset + clamped));
+      request = this.sendRequest(array.slice(offset, offset + clamped));
       offset += clamped - 1;
       array[offset] = SP.CLIENT.JERRY_DEBUGGER_EVAL_PART;
     }
+
+    return request;
   }
 
-  findBreakpoint(scriptId: number, line: number, column: number = 0) {
+  public findBreakpoint(scriptId: number, line: number, column: number = 0): Breakpoint {
     if (scriptId <= 0 || scriptId >= this.lineLists.length) {
       throw new Error('invalid script id');
     }
+
     const lineList = this.lineLists[scriptId];
     if (!lineList[line]) {
       throw new Error(`no breakpoint found for line: ${line}`);
     }
+
     for (const func of lineList[line]) {
       const breakpoint = func.lines[line];
       // TODO: when we start handling columns we would need to distinguish them
       return breakpoint;
     }
+
     throw new Error('no breakpoint found');
   }
 
-  updateBreakpoint(breakpoint: Breakpoint, enable: boolean) {
+  public updateBreakpoint(breakpoint: Breakpoint, enable: boolean): Promise<number> {
     let breakpointId;
+
     if (enable) {
       if (breakpoint.activeIndex !== -1) {
-        throw new Error('breakpoint already enabled');
+        return Promise.reject('breakpoint already enabled');
       }
       breakpointId = breakpoint.activeIndex = this.nextBreakpointIndex++;
       this.activeBreakpoints[breakpointId] = breakpoint;
     } else {
       if (breakpoint.activeIndex === -1) {
-        throw new Error('breakpoint already disabled');
+        return Promise.reject('breakpoint already disabled');
       }
       breakpointId = breakpoint.activeIndex;
       delete this.activeBreakpoints[breakpointId];
       breakpoint.activeIndex = -1;
     }
-    this.debuggerClient!.send(encodeMessage(this.byteConfig, 'BBCI', [
+
+    return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'BBCI', [
       SP.CLIENT.JERRY_DEBUGGER_UPDATE_BREAKPOINT,
       Number(enable),
       breakpoint.func.byteCodeCP,
       breakpoint.offset,
-    ]));
-    return breakpointId;
+    ])).then(() => breakpointId);
   }
 
   requestBacktrace() {
     if (!this.lastBreakpointHit) {
-      throw new Error('backtrace not allowed while app running');
+      return Promise.reject('backtrace not allowed while app running');
     }
-    this.debuggerClient!.send(encodeMessage(this.byteConfig, 'BI', [SP.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, 0]));
+    return this.sendRequest(encodeMessage(this.byteConfig, 'BI', [SP.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, 0]));
   }
 
   logPacket(description: string, ignorable: boolean = false) {
@@ -633,15 +701,19 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  private resumeExec(code: number) {
+  private resumeExec(code: number): Promise<any> {
     if (!this.lastBreakpointHit) {
-      throw new Error('attempted resume while not at breakpoint');
+      return Promise.reject('attempted resume while not at breakpoint');
     }
+
     this.lastBreakpointHit = undefined;
-    this.debuggerClient!.send(encodeMessage(this.byteConfig, 'B', [code]));
+    const result = this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
+
     if (this.delegate.onResume) {
       this.delegate.onResume();
     }
+
+    return result;
   }
 
   sendClientSource(fileName, fileSourceCode) {
@@ -678,5 +750,35 @@ export class JerryDebugProtocolHandler {
     if (this.delegate.onWaitForSource) {
       this.delegate.onWaitForSource();
     }
+  }
+
+  private sendRequest(data: Uint8Array): Promise<any> {
+    const request = new PendingRequest(data);
+
+    if (this.currentRequest !== null) {
+      this.requestQueue = [...this.requestQueue, request];
+    } else {
+      if (!this.submitRequest(request)) {
+        return Promise.reject('Failed to submit request.');
+      }
+    }
+
+    return request.promise;
+  }
+
+  private sendSimpleRequest(data: Uint8Array): Promise<any> {
+    const request = new PendingRequest(data);
+
+    if (!this.submitRequest(request, true)) {
+      return Promise.reject('Failed to submit request.');
+    }
+
+    return Promise.resolve();
+  }
+
+  private submitRequest(request: PendingRequest, simple: boolean = false): boolean {
+    if (!this.debuggerClient!.send(request.data)) return false;
+    if (!simple) this.currentRequest = request;
+    return true;
   }
 }
