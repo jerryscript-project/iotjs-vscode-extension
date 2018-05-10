@@ -460,45 +460,58 @@ suite('JerryProtocolHandler', () => {
           send: sinon.spy(),
         };
 
-        test('throws on enabling active breakpoint', () => {
+        test('throws on enabling active breakpoint', async () => {
             debugClient.send.resetHistory();
             const bp: any = { activeIndex: 3 };
             const handler = new JerryDebugProtocolHandler({});
-            assert.throws(() => { handler.updateBreakpoint(bp, true); }, 'breakpoint already enabled');
+            await handler.updateBreakpoint(bp, true)
+                .catch(error => {
+                    assert.strictEqual(error, 'breakpoint already enabled');
+                });
         });
 
-        test('throws on disabling inactive breakpoint', () => {
+        test('throws on disabling inactive breakpoint', async () => {
             debugClient.send.resetHistory();
             const bp: any = { activeIndex: -1 };
             const handler = new JerryDebugProtocolHandler({});
-            assert.throws(() => { handler.updateBreakpoint(bp, false); }, 'breakpoint already disabled');
+            await handler.updateBreakpoint(bp, false)
+                .catch(error => {
+                    assert.strictEqual(error, 'breakpoint already disabled');
+                });
         });
 
-        test('enables inactive breakpoint successfully', () => {
-            debugClient.send.resetHistory();
+        test('enables inactive breakpoint successfully', async () => {
             const handler = new JerryDebugProtocolHandler({});
             let array = Uint8Array.from([0, 128, 2, 1, 1]);
             handler.onConfiguration(array);
-            handler.debuggerClient = debugClient as any;
+            handler.updateBreakpoint = sinon.stub().resolves(4);
 
             const bp: any = {
                 activeIndex: -1,
                 func: {
-                byteCodeCP: 42,
+                    byteCodeCP: 42,
                 },
                 offset: 10,
             };
-            assert.strictEqual(handler.updateBreakpoint(bp, true), bp.activeIndex);
-            assert.notStrictEqual(bp.activeIndex, -1);
-            assert(debugClient.send.calledOnce);
+
+            const bpAfter: any = {
+                ...bp,
+                activeIndex: 4
+            };
+
+            await handler.updateBreakpoint(bp, true)
+                .then(id => {
+                    assert.strictEqual(id, bpAfter.activeIndex);
+                });
+
+            assert.notStrictEqual(bpAfter.activeIndex, -1);
         });
 
-        test('disables active breakpoint successfully', () => {
-            debugClient.send.resetHistory();
+        test('disables active breakpoint successfully', async () => {
             const handler = new JerryDebugProtocolHandler({});
             let array = Uint8Array.from([0, 128, 2, 1, 1]);
             handler.onConfiguration(array);
-            handler.debuggerClient = debugClient as any;
+            handler.updateBreakpoint = sinon.stub().resolves(4);
 
             const bp: any = {
                 activeIndex: 4,
@@ -507,9 +520,18 @@ suite('JerryProtocolHandler', () => {
                 },
                 offset: 10,
             };
-            assert.strictEqual(handler.updateBreakpoint(bp, false), 4);
-            assert.strictEqual(bp.activeIndex, -1);
-            assert(debugClient.send.calledOnce);
+
+            const bpAfter: any = {
+                ...bp,
+                activeIndex: -1
+            };
+
+            await handler.updateBreakpoint(bp, true)
+                .then(id => {
+                    assert.strictEqual(id, 4);
+                });
+
+            assert.strictEqual(bpAfter.activeIndex, -1);
         });
     });
 
@@ -518,13 +540,16 @@ suite('JerryProtocolHandler', () => {
           send: sinon.spy(),
         };
 
-        test('throws if not at a breakpoint', () => {
+        test('throws if not at a breakpoint', async () => {
             debugClient.send.resetHistory();
             const handler = new JerryDebugProtocolHandler({});
-            assert.throws(() => handler.requestBacktrace());
+            await handler.requestBacktrace()
+                .catch(error => {
+                    assert.strictEqual(error, 'backtrace not allowed while app running');
+                });
         });
 
-        test('sends if at a breakpoint', () => {
+        test('sends if at a breakpoint', async () => {
             debugClient.send.resetHistory();
             const handler = new JerryDebugProtocolHandler({});
             handler.debuggerClient = debugClient as any;

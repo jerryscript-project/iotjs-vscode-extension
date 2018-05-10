@@ -26,9 +26,9 @@ import * as Path from 'path';
 import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
-  JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed
+  JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult
 } from './JerryProtocolHandler';
-import { Breakpoint } from './JerryBreakpoints';
+import { EVAL_RESULT_SUBTYPE } from './JerryProtocolConstants';
 
 class IotjsDebugSession extends LoggingDebugSession {
 
@@ -39,8 +39,6 @@ class IotjsDebugSession extends LoggingDebugSession {
   private _debugLog: boolean = false;
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
-
-  private _backtrace: Array<Breakpoint> = [];
 
   public constructor() {
     super('iotjs-debug.txt');
@@ -113,18 +111,14 @@ class IotjsDebugSession extends LoggingDebugSession {
     this._args = args;
     this._debugLog = args.debugLog || false;
 
-    const onBacktrace = backtarce => {
-      this.log('onBacktrace');
-      this._backtrace = backtarce;
+    const onBreakpointHit = () => {
+      this.log('onBreakpointHit');
       this.sendEvent(new StoppedEvent('breakpoint', IotjsDebugSession.THREAD_ID));
     };
 
-    const onBreakpointHit = ref => {
-      this.log('onBreakpointHit');
-      this._protocolhandler.requestBacktrace();
-    };
-
     const onResume = () => {
+      this.log('onResume');
+
       this.sendEvent(new ContinuedEvent(IotjsDebugSession.THREAD_ID));
     };
 
@@ -139,7 +133,6 @@ class IotjsDebugSession extends LoggingDebugSession {
     };
 
     const protocolDelegate = <JerryDebugProtocolDelegate>{
-      onBacktrace,
       onBreakpointHit,
       onResume,
       onScriptParsed
@@ -190,46 +183,56 @@ class IotjsDebugSession extends LoggingDebugSession {
   protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
     this.log('continueRequest');
 
-    this._protocolhandler.resume();
-
-    this.sendResponse(response);
+    this._protocolhandler.resume()
+      .then(() => {
+        this.sendResponse(response);
+      })
+      .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
     this.log('nextRequest');
 
-    this._protocolhandler.stepOver();
-
-    this.sendResponse(response);
+    this._protocolhandler.stepOver()
+    .then(() => {
+      this.sendResponse(response);
+    })
+    .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
     this.log('stepInRequest');
 
-    this._protocolhandler.stepInto();
-
-    this.sendResponse(response);
+    this._protocolhandler.stepInto()
+      .then(() => {
+        this.sendResponse(response);
+      })
+      .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
     this.log('stepOutRequest');
 
-    this._protocolhandler.stepOut();
-
-    this.sendResponse(response);
+    this._protocolhandler.stepOut()
+    .then(() => {
+      this.sendResponse(response);
+    })
+    .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
     this.log('pauseRequest');
 
-    this._protocolhandler.pause();
-
-    this.sendResponse(response);
+    this._protocolhandler.pause()
+    .then(() => {
+      this.sendResponse(response);
+    })
+    .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
-  protected setBreakPointsRequest(
+  protected async setBreakPointsRequest(
     response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments
-  ): void {
+  ): Promise<void> {
     this.log('setBreakPointsRequest');
 
     const filename = args.source.name;
@@ -237,49 +240,57 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     try {
       const scriptId = this._protocolhandler.getScriptIdByName(filename);
-
       const activeBp = this._protocolhandler.getActiveBreakpointsByScriptId(scriptId);
       const activeBpLines = activeBp.map(b => b.line);
+
       const newBp = clientLines.filter(b => activeBpLines.indexOf(b) === -1);
       const removeBp = activeBpLines.filter(b => clientLines.indexOf(b) === -1);
       const persistingBp = clientLines.filter(b => newBp.indexOf(b) === -1);
 
-      let newBreakpoints = [];
-      try {
-        newBreakpoints = newBp.map(b => {
-          const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
-          this._protocolhandler.updateBreakpoint(breakpoint, true);
-          return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
-        });
-      } catch (error) {
-        this.log(error.message);
-      }
+      let newBreakpoints: DebugProtocol.Breakpoint[] = [];
+      await Promise.all(newBp.map(async b => {
+        const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
+        return await this._protocolhandler.updateBreakpoint(breakpoint, true)
+          .then(() => <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b));
+      }))
+      .then(breakpoints => {
+        newBreakpoints = breakpoints;
+      });
 
-      try {
-          removeBp.forEach(b => {
-          const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
-          this._protocolhandler.updateBreakpoint(breakpoint, false);
-        });
-      } catch (error) {
-        this.log(error.message);
-      }
+      removeBp.forEach(async b => {
+        const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
+        await this._protocolhandler.updateBreakpoint(breakpoint, false);
+      });
 
-      let persistingBreakpoints = [];
-      try {
-        persistingBreakpoints = persistingBp.map(b => {
-          return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
-        });
-      } catch (error) {
-        this.log(error.message);
-      }
+      const persistingBreakpoints = persistingBp.map(b => {
+        return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
+      });
 
       response.body = {
         breakpoints: [...persistingBreakpoints, ...newBreakpoints]
       };
+
+      this.sendResponse(response);
     } catch (error) {
       this.log(error.message);
     }
-    this.sendResponse(response);
+  }
+
+  protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
+    this.log('evaluateRequest');
+
+    this._protocolhandler.evaluate(args.expression)
+      .then((result: JerryEvalResult) => {
+        const value = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK ? result.value : 'Evaluate Error';
+
+        response.body = {
+          result: value,
+          variablesReference: 0
+        };
+
+        this.sendResponse(response);
+      })
+      .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   protected stackTraceRequest(
@@ -287,21 +298,25 @@ class IotjsDebugSession extends LoggingDebugSession {
   ): void {
     this.log('stackTraceRequest');
 
-    const stk = this._backtrace.map((f, i) => new StackFrame(
-        i,
-        f.func.name || 'global',
-        this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
-        f.line,
-        f.func.column
-      )
-    );
+    this._protocolhandler.requestBacktrace()
+      .then(backtrace => {
+        const stk = backtrace.map((f, i) => new StackFrame(
+            i,
+            f.func.name || 'global',
+            this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
+            f.line,
+            f.func.column
+          )
+        );
 
-    response.body = {
-      stackFrames: stk,
-      totalFrames: stk.length,
-    };
+        response.body = {
+          stackFrames: stk,
+          totalFrames: stk.length,
+        };
 
-    this.sendResponse(response);
+        this.sendResponse(response);
+      })
+      .catch(error => this.sendErrorResponse(response, 0, error));
   }
 
   private handleSource(data: JerryMessageScriptParsed): void {
