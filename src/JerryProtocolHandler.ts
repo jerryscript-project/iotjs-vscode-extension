@@ -592,13 +592,8 @@ export class JerryDebugProtocolHandler {
   }
 
   public getScriptIdByName(name: string): number {
-    // skip the first (dummy) source
-    for (let i = 1; i < this.sources.length; i++) {
-      const source: ParsedSource = this.sources[i];
-      if (name === source.name) {
-        return i;
-      }
-    }
+    const index = this.sources.findIndex(s => s.name && s.name.endsWith(name));
+    if (index > 0) return index;
     throw new Error('no such source');
   }
 
