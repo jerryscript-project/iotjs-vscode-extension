@@ -17,14 +17,18 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
-  // The IP address on which the server listening.
+  // IP address on which the server listening.
   address: string;
-  // The debug port to attach to.
+  // Debug port to attach to.
   port: number;
-  // The VSCode's root directory.
+  // VSCode's root directory.
   localRoot?: string;
   // Automatically stop target after launch.
   stopOnEntry?: boolean;
-  // Allowes to log debug messages to the console.
+  // Allows to log debug messages to console.
   debugLog?: boolean;
+  // Filename.
+  program?: string;
+  // Ask for filename if in wait-for-source mode.
+  provideSource: boolean;
 }
