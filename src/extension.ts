@@ -46,14 +46,9 @@ const provideInitialConfigurations = (): string => {
 };
 
 const getListOfFiles = (): Array<string> => {
-  let wsFolders = Array<string>();
   let wsFiles = Array<string>();
 
-  vscode.workspace.workspaceFolders.forEach(folder => {
-    wsFolders.push(folder.uri.fsPath);
-  });
-
-  wsFolders.forEach(entry => {
+  vscode.workspace.workspaceFolders.map(folder => folder.uri.fsPath).forEach(entry => {
     fs.readdirSync(entry).forEach(file => {
       if ((fs.statSync(`${entry}/${file}`)).isFile()) {
         if (path.extname(file).toLowerCase().match(/\.(js)$/i)) {
@@ -62,12 +57,14 @@ const getListOfFiles = (): Array<string> => {
       }
     });
   });
-  return wsFiles;
+
+  return ['', ...wsFiles];
 };
 
 const getProgramName = (): Thenable<string> => {
   return vscode.window.showQuickPick(getListOfFiles(), {
-    placeHolder: 'Select a file you want to debug or press Enter if you are in normal mode'
+    placeHolder: 'Select a file you want to debug or press Enter if you are in normal mode',
+    ignoreFocusOut: true
   });
 };
 

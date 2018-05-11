@@ -711,9 +711,9 @@ export class JerryDebugProtocolHandler {
     return result;
   }
 
-  sendClientSource(fileName, fileSourceCode) {
+  public sendClientSource(fileName: string, fileSourceCode: string): Promise<any> {
     if (!this.waitForSourceEnabled) {
-      throw new Error('wait-for-source not enabled');
+      return Promise.reject('wait-for-source not enabled');
     }
 
     this.waitForSourceEnabled = false;
@@ -723,21 +723,20 @@ export class JerryDebugProtocolHandler {
     array[0] = SP.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE;
 
     if (byteLength <= this.maxMessageSize) {
-      this.debuggerClient.send(array);
-      return true;
+      return this.sendSimpleRequest(array);
     }
 
-    this.debuggerClient.send(array.slice(0, this.maxMessageSize));
+    let result = this.sendSimpleRequest(array.slice(0, this.maxMessageSize));
 
     let offset = this.maxMessageSize - 1;
 
     while (offset < byteLength) {
       array[offset] = SP.CLIENT.JERRY_DEBUGGER_CLIENT_SOURCE_PART;
-      this.debuggerClient.send(array.slice(offset, offset + this.maxMessageSize));
+      result = this.sendSimpleRequest(array.slice(offset, offset + this.maxMessageSize));
       offset += this.maxMessageSize - 1;
     }
 
-    return true;
+    return result;
   }
 
   onWaitForSource() {
