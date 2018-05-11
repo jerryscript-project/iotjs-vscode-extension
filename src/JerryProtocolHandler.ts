@@ -49,7 +49,7 @@ export interface JerryDebugProtocolDelegate {
   onError?(code: number, message: string): void;
   onResume?(): void;
   onScriptParsed?(message: JerryMessageScriptParsed): void;
-  onWaitForSource?(): JerryMessageSource;
+  onWaitForSource?(): void;
 }
 
 export interface JerryMessageSource {

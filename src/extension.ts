@@ -17,6 +17,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const initialConfigurations = [{
   name: 'Attach',
@@ -26,7 +28,8 @@ const initialConfigurations = [{
   port: 5001,
   localRoot: '${workspaceRoot}',
   stopOnEntry: false,
-  debugLog: false
+  debugLog: false,
+  program: '${command:AskForProgramName}'
 }];
 
 const provideInitialConfigurations = (): string => {
@@ -42,9 +45,36 @@ const provideInitialConfigurations = (): string => {
   ].join('\n');
 };
 
+const getListOfFiles = (): Array<string> => {
+  let wsFolders = Array<string>();
+  let wsFiles = Array<string>();
+
+  vscode.workspace.workspaceFolders.forEach(folder => {
+    wsFolders.push(folder.uri.fsPath);
+  });
+
+  wsFolders.forEach(entry => {
+    fs.readdirSync(entry).forEach(file => {
+      if ((fs.statSync(`${entry}/${file}`)).isFile()) {
+        if (path.extname(file).toLowerCase().match(/\.(js)$/i)) {
+          wsFiles.push(file);
+        }
+      }
+    });
+  });
+  return wsFiles;
+};
+
+const getProgramName = (): Thenable<string> => {
+  return vscode.window.showQuickPick(getListOfFiles(), {
+    placeHolder: 'Select a file you want to debug or press Enter if you are in normal mode'
+  });
+};
+
 export const activate = (context: vscode.ExtensionContext) => {
   context.subscriptions.push(
-    vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations)
+    vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
+    vscode.commands.registerCommand('iotjs-debug.getProgramName', getProgramName)
   );
 };
 
