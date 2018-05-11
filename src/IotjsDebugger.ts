@@ -132,15 +132,20 @@ class IotjsDebugSession extends LoggingDebugSession {
       this.sendEvent(new TerminatedEvent());
     };
 
-    const onWaitForSource = () => {
+    const onWaitForSource = async () => {
       this.log('onWaitForSource');
+
       if (args.program !== '') {
         if (Fs.existsSync(`${args.localRoot}/${args.program}`)) {
           const content = Fs.readFileSync(`${args.localRoot}/${args.program}`, {
             encoding: 'utf8',
             flag: 'r'
           });
-          this._protocolhandler.sendClientSource(args.program, content);
+          await this._protocolhandler.sendClientSource(args.program, content)
+            .then(() => this.log('Source has been sended to the engine.'))
+            .catch(error => {
+              this.sendErrorResponse(response, 0, error);
+            });
         } else {
           this.sendErrorResponse(response, 0, 'You must provide a valid path to source');
         }
