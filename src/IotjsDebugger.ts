@@ -135,7 +135,7 @@ class IotjsDebugSession extends LoggingDebugSession {
     const onWaitForSource = async () => {
       this.log('onWaitForSource');
 
-      if (args.program !== '') {
+      if (args.program !== '' && args.program !== '\0') {
         if (Fs.existsSync(`${args.localRoot}/${args.program}`)) {
           const content = Fs.readFileSync(`${args.localRoot}/${args.program}`, {
             encoding: 'utf8',

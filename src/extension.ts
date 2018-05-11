@@ -58,7 +58,7 @@ const getListOfFiles = (): Array<string> => {
     });
   });
 
-  return ['', ...wsFiles];
+  return ['\0', ...wsFiles];
 };
 
 const getProgramName = (): Thenable<string> => {
