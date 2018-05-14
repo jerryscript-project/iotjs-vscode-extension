@@ -692,7 +692,7 @@ export class JerryDebugProtocolHandler {
       Number(enable),
       breakpoint.func.byteCodeCP,
       breakpoint.offset,
-    ])).then(() => breakpointId);
+    ]));
   }
 
   requestBacktrace() {
