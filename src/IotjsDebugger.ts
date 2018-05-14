@@ -26,7 +26,8 @@ import * as Path from 'path';
 import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
-  JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult
+  JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
+  JerryMessageExceptionHit
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE } from './JerryProtocolConstants';
 
@@ -116,6 +117,11 @@ class IotjsDebugSession extends LoggingDebugSession {
       this.sendEvent(new StoppedEvent('breakpoint', IotjsDebugSession.THREAD_ID));
     };
 
+    const onExceptionHit = (data: JerryMessageExceptionHit) => {
+      this.log('onExceptionHit');
+      this.sendEvent(new StoppedEvent('exception', IotjsDebugSession.THREAD_ID, data.message));
+    };
+
     const onResume = () => {
       this.log('onResume');
 
@@ -156,6 +162,7 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     const protocolDelegate = <JerryDebugProtocolDelegate>{
       onBreakpointHit,
+      onExceptionHit,
       onResume,
       onScriptParsed,
       onWaitForSource
