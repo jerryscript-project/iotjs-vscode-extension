@@ -758,6 +758,16 @@ export class JerryDebugProtocolHandler {
     return result;
   }
 
+  public sendClientSourceControl(code: number): Promise<any> {
+    const validCodes: number[] = [SP.CLIENT.JERRY_DEBUGGER_NO_MORE_SOURCES, SP.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET];
+
+    if (validCodes.indexOf(code) === -1) {
+      return Promise.reject('Invalid source sending control code.');
+    }
+
+    return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
+  }
+
   onWaitForSource() {
     this.waitForSourceEnabled = true;
     if (this.delegate.onWaitForSource) {

@@ -17,21 +17,28 @@
 'use strict';
 
 import {
-  LoggingDebugSession, DebugSession, Logger, logger, InitializedEvent, OutputEvent, Thread, Source,
-  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Breakpoint as AdapterBreakpoint
+  DebugSession, InitializedEvent, OutputEvent, Thread, Source,
+  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Breakpoint as AdapterBreakpoint, Event, ErrorDestination
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
 import * as Path from 'path';
-import { IAttachRequestArguments } from './IotjsDebuggerInterfaces';
+import { IAttachRequestArguments, SourceSendingOptions } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
   JerryMessageExceptionHit
 } from './JerryProtocolHandler';
-import { EVAL_RESULT_SUBTYPE } from './JerryProtocolConstants';
+import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
 
-class IotjsDebugSession extends LoggingDebugSession {
+enum SOURCE_SENDING_STATES {
+  NOP = 0,
+  WAITING = 1,
+  IN_PROGRESS = 2,
+  LAST_SENT = 3
+}
+
+class IotjsDebugSession extends DebugSession {
 
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   private static THREAD_ID = 1;
@@ -40,15 +47,14 @@ class IotjsDebugSession extends LoggingDebugSession {
   private _debugLog: boolean = false;
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
+  private _sourceSendingOptions: SourceSendingOptions;
 
   public constructor() {
-    super('iotjs-debug.txt');
+    super();
 
     // The debugger uses zero-based lines and columns.
     this.setDebuggerLinesStartAt1(false);
     this.setDebuggerColumnsStartAt1(false);
-
-    logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/false);
   }
 
   protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
@@ -78,6 +84,11 @@ class IotjsDebugSession extends LoggingDebugSession {
     response.body.supportsEvaluateForHovers = false;
     response.body.supportsStepBack = false;
     response.body.supportsRestartRequest = true;
+
+    this._sourceSendingOptions = <SourceSendingOptions>{
+      contextReset: false,
+      state: SOURCE_SENDING_STATES.NOP
+    };
 
     this.sendResponse(response);
   }
@@ -140,23 +151,14 @@ class IotjsDebugSession extends LoggingDebugSession {
 
     const onWaitForSource = async () => {
       this.log('onWaitForSource');
-
-      if (args.program !== '' && args.program !== '\0') {
-        if (Fs.existsSync(`${args.localRoot}/${args.program}`)) {
-          const content = Fs.readFileSync(`${args.localRoot}/${args.program}`, {
-            encoding: 'utf8',
-            flag: 'r'
-          });
-          await this._protocolhandler.sendClientSource(args.program, content)
-            .then(() => this.log('Source has been sended to the engine.'))
-            .catch(error => {
-              this.sendErrorResponse(response, 0, error);
-            });
-        } else {
-          this.sendErrorResponse(response, 0, 'You must provide a valid path to source');
+      if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
+        this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
+        this.sendEvent(new Event('waitForSource'));
+      } else if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.LAST_SENT) {
+        if (!this._sourceSendingOptions.contextReset) {
+          this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
+          this._protocolhandler.sendClientSourceControl(CLIENT_PACKAGE.JERRY_DEBUGGER_NO_MORE_SOURCES);
         }
-      } else {
-        this.sendErrorResponse(response, 0, 'You must provide a source');
       }
     };
 
@@ -180,10 +182,15 @@ class IotjsDebugSession extends LoggingDebugSession {
     this._protocolhandler.debuggerClient = this._debuggerClient;
 
     this._debuggerClient.connect()
-      .then(() => this.log(`Connected to: ${args.address}:${args.port}`))
-      .catch(error => this.log(error));
+      .then(() => {
+        this.log(`Connected to: ${args.address}:${args.port}`);
+        this.sendResponse(response);
+      })
+      .catch(error => {
+        this.log(error);
+        this.sendErrorResponse(response, 0, error.message);
+      });
 
-    this.sendResponse(response);
     this.sendEvent(new InitializedEvent());
   }
 
@@ -347,6 +354,30 @@ class IotjsDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
       })
       .catch(error => this.sendErrorResponse(response, 0, error));
+  }
+
+  protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
+    this.log('customRequest');
+
+    switch (command) {
+      case 'sendSource': {
+        this._sourceSendingOptions.state = SOURCE_SENDING_STATES.IN_PROGRESS;
+        this._protocolhandler.sendClientSource(args.program.name, args.program.source)
+          .then(() => {
+            this.log('Source has been sent to the engine.');
+            this._sourceSendingOptions.state = SOURCE_SENDING_STATES.LAST_SENT;
+            this.sendResponse(response);
+          })
+          .catch(error => {
+            this.log(error);
+            this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
+            this.sendErrorResponse(response, 0, error, null, ErrorDestination.User);
+          });
+        return;
+      }
+      default:
+        super.customRequest(command, response, args);
+    }
   }
 
   private handleSource(data: JerryMessageScriptParsed): void {
