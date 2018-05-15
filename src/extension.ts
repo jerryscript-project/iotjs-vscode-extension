@@ -28,8 +28,7 @@ const initialConfigurations = [{
   port: 5001,
   localRoot: '${workspaceRoot}',
   stopOnEntry: false,
-  debugLog: false,
-  program: '${command:AskForProgramName}'
+  debugLog: false
 }];
 
 const provideInitialConfigurations = (): string => {
@@ -45,33 +44,66 @@ const provideInitialConfigurations = (): string => {
   ].join('\n');
 };
 
-const getListOfFiles = (): Array<string> => {
-  let wsFiles = Array<string>();
-
-  vscode.workspace.workspaceFolders.map(folder => folder.uri.fsPath).forEach(entry => {
-    fs.readdirSync(entry).forEach(file => {
-      if ((fs.statSync(`${entry}/${file}`)).isFile()) {
-        if (path.extname(file).toLowerCase().match(/\.(js)$/i)) {
-          wsFiles.push(file);
-        }
-      }
-    });
+const walkSync = (dir: string, filelist: string[] = []): string[] => {
+  fs.readdirSync(dir).forEach(file => {
+    filelist = fs.statSync(path.join(dir, file)).isDirectory()
+      ? walkSync(path.join(dir, file), filelist)
+      : filelist.concat(path.join(dir, file));
   });
 
-  return ['\0', ...wsFiles];
+  return filelist.filter(f => path.extname(f).toLowerCase().match(/\.(js)$/i) && f !== '');
+};
+
+const getListOfFiles = (): string[] => {
+  let wsFiles: string[] = [];
+
+  vscode.workspace.workspaceFolders.map(folder => folder.uri.fsPath).forEach(entry => {
+    console.log(walkSync(entry));
+    wsFiles = [...wsFiles, ...walkSync(entry)];
+  });
+
+  return wsFiles;
 };
 
 const getProgramName = (): Thenable<string> => {
   return vscode.window.showQuickPick(getListOfFiles(), {
-    placeHolder: 'Select a file you want to debug or press Enter if you are in normal mode',
+    placeHolder: 'Select a file you want to debug',
     ignoreFocusOut: true
   });
+};
+
+const getProgramSource = (path: string): string => {
+  return fs.readFileSync(path, {
+    encoding: 'utf8',
+    flag: 'r'
+  });
+};
+
+const processCustomEvent = async (e: vscode.DebugSessionCustomEvent): Promise<any> => {
+  switch (e.event) {
+    case 'waitForSource': {
+      if (vscode.debug.activeDebugSession) {
+        const path = await getProgramName().then(path => path);
+        const source = getProgramSource(path);
+
+        vscode.debug.activeDebugSession.customRequest('sendSource', {
+          program: {
+            name: path.split('/').pop(),
+            source
+          }
+        });
+      }
+      return true;
+    }
+    default:
+      return undefined;
+  }
 };
 
 export const activate = (context: vscode.ExtensionContext) => {
   context.subscriptions.push(
     vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
-    vscode.commands.registerCommand('iotjs-debug.getProgramName', getProgramName)
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => processCustomEvent(e))
   );
 };
 

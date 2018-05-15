@@ -32,3 +32,10 @@ export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArgu
   // Ask for filename if in wait-for-source mode.
   provideSource: boolean;
 }
+
+export interface SourceSendingOptions {
+  // Engine context reset is available or not.
+  contextReset: boolean;
+  // Actual state of source sending.
+  state: number;
+}
