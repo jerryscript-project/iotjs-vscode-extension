@@ -545,7 +545,7 @@ suite('JerryProtocolHandler', () => {
             const handler = new JerryDebugProtocolHandler({});
             await handler.requestBacktrace()
                 .catch(error => {
-                    assert.strictEqual(error, 'backtrace not allowed while app running');
+                    assert.strictEqual((<Error>error).message, 'backtrace not allowed while app running');
                 });
         });
 
