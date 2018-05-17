@@ -18,18 +18,19 @@
 
 import {
   DebugSession, InitializedEvent, OutputEvent, Thread, Source,
-  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Breakpoint as AdapterBreakpoint, Event, ErrorDestination
+  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Event, ErrorDestination
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
 import * as Path from 'path';
-import { IAttachRequestArguments, SourceSendingOptions } from './IotjsDebuggerInterfaces';
+import { IAttachRequestArguments, SourceSendingOptions, TemporaryBreakpoint } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
   JerryMessageExceptionHit
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
+import { Breakpoint } from './JerryBreakpoints';
 
 enum SOURCE_SENDING_STATES {
   NOP = 0,
@@ -75,8 +76,6 @@ class IotjsDebugSession extends DebugSession {
     response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.log('initializeRequest');
-
-    this.sendEvent(new InitializedEvent());
 
     // This debug adapter implements the configurationDoneRequest.
     response.body.supportsConfigurationDoneRequest = true;
@@ -189,9 +188,10 @@ class IotjsDebugSession extends DebugSession {
       .catch(error => {
         this.log(error);
         this.sendErrorResponse(response, 0, error.message);
+      })
+      .then(() => {
+        this.sendEvent(new InitializedEvent());
       });
-
-    this.sendEvent(new InitializedEvent());
   }
 
   protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
@@ -272,45 +272,51 @@ class IotjsDebugSession extends DebugSession {
   ): Promise<void> {
     this.log('setBreakPointsRequest');
 
-    const filename = args.source.name;
-    const clientLines = args.lines || [];
+    const filename: string = args.source.name;
+    const vscodeBreakpoints: DebugProtocol.Breakpoint[] = args.breakpoints!.map(b => ({verified: false, line: b.line}));
 
     try {
-      const scriptId = this._protocolhandler.getScriptIdByName(filename);
-      const activeBp = this._protocolhandler.getActiveBreakpointsByScriptId(scriptId);
-      const activeBpLines = activeBp.map(b => b.line);
+      const scriptId: number = this._protocolhandler.getScriptIdByName(filename);
+      const activeBps: Breakpoint[] = this._protocolhandler.getActiveBreakpointsByScriptId(scriptId);
 
-      const newBp = clientLines.filter(b => activeBpLines.indexOf(b) === -1);
-      const removeBp = activeBpLines.filter(b => clientLines.indexOf(b) === -1);
-      const persistingBp = clientLines.filter(b => newBp.indexOf(b) === -1);
+      // Get the new breakpoints.
+      const activeBpsLines: number[] = activeBps.map(b => b.line);
+      const newBps: DebugProtocol.Breakpoint[] = vscodeBreakpoints.filter(b => activeBpsLines.indexOf(b.line) === -1);
 
-      let newBreakpoints: DebugProtocol.Breakpoint[] = [];
-      await Promise.all(newBp.map(async b => {
-        const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
-        return await this._protocolhandler.updateBreakpoint(breakpoint, true)
-          .then(() => <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b));
-      }))
-      .then(breakpoints => {
-        newBreakpoints = breakpoints;
+      const newBreakpoints: TemporaryBreakpoint[] = await Promise.all(newBps.map(async (breakpoint, index) => {
+        try {
+          const jerryBreakpoint: Breakpoint = this._protocolhandler.findBreakpoint(scriptId, breakpoint.line);
+          await this._protocolhandler.updateBreakpoint(jerryBreakpoint, true);
+          return <TemporaryBreakpoint>{verified: true, line: breakpoint.line};
+        } catch (error) {
+          this.log(error);
+          return <TemporaryBreakpoint>{verified: false, line: breakpoint.line, message: (<Error>error).message};
+        }
+      }));
+
+      // Get the persists breakpoints.
+      const newBreakpointsLines: number[] = newBreakpoints.map(b => b.line);
+      const persistingBreakpoints: TemporaryBreakpoint[] = vscodeBreakpoints
+                                    .filter(b => newBreakpointsLines.indexOf(b.line) === -1)
+                                    .map(b => ({verified: true, line: b.line}));
+
+      // Get the removalbe breakpoints.
+      const vscodeBreakpointsLines: number[] = vscodeBreakpoints.map(b => b.line);
+      const removeBps: Breakpoint[] = activeBps.filter(b => vscodeBreakpointsLines.indexOf(b.line) === -1);
+
+      removeBps.forEach(async b => {
+        const jerryBreakpoint = this._protocolhandler.findBreakpoint(scriptId, b.line);
+        await this._protocolhandler.updateBreakpoint(jerryBreakpoint, false);
       });
 
-      removeBp.forEach(async b => {
-        const breakpoint = this._protocolhandler.findBreakpoint(scriptId, b);
-        await this._protocolhandler.updateBreakpoint(breakpoint, false);
-      });
-
-      const persistingBreakpoints = persistingBp.map(b => {
-        return <DebugProtocol.Breakpoint> new AdapterBreakpoint(true, b);
-      });
-
-      response.body = {
-        breakpoints: [...persistingBreakpoints, ...newBreakpoints]
-      };
-
-      this.sendResponse(response);
+      response.body = { breakpoints: [...persistingBreakpoints, ...newBreakpoints] };
     } catch (error) {
       this.log(error.message);
+      this.sendErrorResponse(response, error.message);
+      return;
     }
+
+    this.sendResponse(response);
   }
 
   protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {

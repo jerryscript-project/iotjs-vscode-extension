@@ -39,3 +39,12 @@ export interface SourceSendingOptions {
   // Actual state of source sending.
   state: number;
 }
+
+export interface TemporaryBreakpoint {
+  // The breakpoint is verified or not by the engine.
+  verified: boolean;
+  // Line position in the file.
+  line: number;
+  // Extra error or info message.
+  message?: string;
+}
