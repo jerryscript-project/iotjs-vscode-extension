@@ -44,7 +44,7 @@ export class JerryDebuggerClient {
     this.port = options.port || DEFAULT_DEBUGGER_PORT;
   }
 
-  connect(): Promise<void> {
+  public connect(): Promise<void> {
     if (this.connectPromise) {
       return this.connectPromise;
     }
@@ -72,24 +72,24 @@ export class JerryDebuggerClient {
     return this.connectPromise;
   }
 
-  disconnect() {
+  public disconnect(): void {
     if (this.socket) {
       this.socket.close();
       this.socket = undefined;
     }
   }
 
-  onMessage(data: ArrayBuffer) {
+  private onMessage(data: ArrayBuffer): void {
     this.delegate.onMessage(new Uint8Array(data));
   }
 
-  onClose() {
+  private onClose(): void {
     if (this.delegate.onClose) {
       this.delegate.onClose();
     }
   }
 
-  send(data: Uint8Array): boolean {
+  public send(data: Uint8Array): boolean {
     this.socket!.send(data, () => {
       return false;
     });

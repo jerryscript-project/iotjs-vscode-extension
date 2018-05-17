@@ -46,7 +46,7 @@ export class Breakpoint {
     }
   }
 
-  toString() {
+  public toString(): string {
     const sourceName = this.func.sourceName || '<unknown>';
 
     let detail = '';
