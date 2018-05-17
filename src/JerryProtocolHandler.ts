@@ -674,13 +674,13 @@ export class JerryDebugProtocolHandler {
 
     if (enable) {
       if (breakpoint.activeIndex !== -1) {
-        return Promise.reject('breakpoint already enabled');
+        return Promise.reject(new Error('breakpoint already enabled'));
       }
       breakpointId = breakpoint.activeIndex = this.nextBreakpointIndex++;
       this.activeBreakpoints[breakpointId] = breakpoint;
     } else {
       if (breakpoint.activeIndex === -1) {
-        return Promise.reject('breakpoint already disabled');
+        return Promise.reject(new Error('breakpoint already disabled'));
       }
       breakpointId = breakpoint.activeIndex;
       delete this.activeBreakpoints[breakpointId];

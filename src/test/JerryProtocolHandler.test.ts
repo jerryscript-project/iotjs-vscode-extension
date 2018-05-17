@@ -466,7 +466,7 @@ suite('JerryProtocolHandler', () => {
             const handler = new JerryDebugProtocolHandler({});
             await handler.updateBreakpoint(bp, true)
                 .catch(error => {
-                    assert.strictEqual(error, 'breakpoint already enabled');
+                    assert.strictEqual((<Error>error).message, 'breakpoint already enabled');
                 });
         });
 
@@ -476,7 +476,7 @@ suite('JerryProtocolHandler', () => {
             const handler = new JerryDebugProtocolHandler({});
             await handler.updateBreakpoint(bp, false)
                 .catch(error => {
-                    assert.strictEqual(error, 'breakpoint already disabled');
+                    assert.strictEqual((<Error>error).message, 'breakpoint already disabled');
                 });
         });
 
