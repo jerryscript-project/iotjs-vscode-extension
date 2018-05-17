@@ -211,7 +211,7 @@ export class JerryDebugProtocolHandler {
 
   public pause(): Promise<any> {
     if (this.lastBreakpointHit) {
-      return Promise.reject('attempted pause while at breakpoint');
+      return Promise.reject(new Error('attempted pause while at breakpoint'));
     }
     return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [SP.CLIENT.JERRY_DEBUGGER_STOP]));
   }
@@ -626,7 +626,7 @@ export class JerryDebugProtocolHandler {
 
   public evaluate(expression: string): Promise<any> {
     if (!this.lastBreakpointHit) {
-      return Promise.reject('attempted eval while not at breakpoint');
+      return Promise.reject(new Error('attempted eval while not at breakpoint'));
     }
 
     this.evalsPending++;
@@ -697,7 +697,7 @@ export class JerryDebugProtocolHandler {
 
   public requestBacktrace(): Promise<any> {
     if (!this.lastBreakpointHit) {
-      return Promise.reject('backtrace not allowed while app running');
+      return Promise.reject(new Error('backtrace not allowed while app running'));
     }
     return this.sendRequest(encodeMessage(this.byteConfig, 'BI', [SP.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, 0]));
   }
@@ -717,7 +717,7 @@ export class JerryDebugProtocolHandler {
 
   private resumeExec(code: number): Promise<any> {
     if (!this.lastBreakpointHit) {
-      return Promise.reject('attempted resume while not at breakpoint');
+      return Promise.reject(new Error('attempted resume while not at breakpoint'));
     }
 
     this.lastBreakpointHit = undefined;
@@ -732,7 +732,7 @@ export class JerryDebugProtocolHandler {
 
   public sendClientSource(fileName: string, fileSourceCode: string): Promise<any> {
     if (!this.waitForSourceEnabled) {
-      return Promise.reject('wait-for-source not enabled');
+      return Promise.reject(new Error('wait-for-source not enabled'));
     }
 
     this.waitForSourceEnabled = false;
@@ -762,7 +762,7 @@ export class JerryDebugProtocolHandler {
     const validCodes: number[] = [SP.CLIENT.JERRY_DEBUGGER_NO_MORE_SOURCES, SP.CLIENT.JERRY_DEBUGGER_CONTEXT_RESET];
 
     if (validCodes.indexOf(code) === -1) {
-      return Promise.reject('Invalid source sending control code.');
+      return Promise.reject(new Error('Invalid source sending control code.'));
     }
 
     return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
@@ -782,7 +782,7 @@ export class JerryDebugProtocolHandler {
       this.requestQueue = [...this.requestQueue, request];
     } else {
       if (!this.submitRequest(request)) {
-        return Promise.reject('Failed to submit request.');
+        return Promise.reject(new Error('Failed to submit request.'));
       }
     }
 
@@ -793,7 +793,7 @@ export class JerryDebugProtocolHandler {
     const request = new PendingRequest(data);
 
     if (!this.submitRequest(request, true)) {
-      return Promise.reject('Failed to submit request.');
+      return Promise.reject(new Error('Failed to submit request.'));
     }
 
     return Promise.resolve();

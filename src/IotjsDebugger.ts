@@ -224,7 +224,7 @@ class IotjsDebugSession extends DebugSession {
       .then(() => {
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, error));
+      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
@@ -234,7 +234,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, error));
+    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
@@ -244,7 +244,7 @@ class IotjsDebugSession extends DebugSession {
       .then(() => {
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, error));
+      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
@@ -254,7 +254,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, error));
+    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
@@ -264,7 +264,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, error));
+    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected async setBreakPointsRequest(
@@ -311,8 +311,8 @@ class IotjsDebugSession extends DebugSession {
 
       response.body = { breakpoints: [...persistingBreakpoints, ...newBreakpoints] };
     } catch (error) {
-      this.log(error.message);
-      this.sendErrorResponse(response, error.message);
+      this.log(error);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
       return;
     }
 
@@ -333,7 +333,7 @@ class IotjsDebugSession extends DebugSession {
 
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, error));
+      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected stackTraceRequest(
@@ -359,7 +359,7 @@ class IotjsDebugSession extends DebugSession {
 
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, error));
+      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
@@ -377,7 +377,7 @@ class IotjsDebugSession extends DebugSession {
           .catch(error => {
             this.log(error);
             this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
-            this.sendErrorResponse(response, 0, error, null, ErrorDestination.User);
+            this.sendErrorResponse(response, 0, (<Error>error).message, null, ErrorDestination.User);
           });
         return;
       }
