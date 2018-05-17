@@ -21,13 +21,14 @@ Available Control commands:
 - Disconnect command
 
 Available features:
+- Set/Remove breakpoint
 - Call stack display
+- Watch (evaluate expression)
 - Handle source receive from the engine
+- Sending source code from the vscode to the engine
 
 Currently in Progress features or commands:
-- Set/Remove breakpoint
-- Source sending to the engine
-- Watch (evaluate expression)
+- IoT.js module based completion
 
 # Requirements
 - The latest Vscode which is available [here](https://code.visualstudio.com/Download).
