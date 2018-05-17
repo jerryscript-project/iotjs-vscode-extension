@@ -192,7 +192,7 @@ export class JerryDebugProtocolHandler {
   }
 
   // FIXME: this lets test suite run for now
-  unused() {
+  public unused(): void {
     // tslint:disable-next-line no-unused-expression
     this.lastBreakpointExact;
   }
@@ -220,7 +220,7 @@ export class JerryDebugProtocolHandler {
     return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_CONTINUE);
   }
 
-  getPossibleBreakpoints(scriptId: number, startLine: number, endLine?: number): Array<Breakpoint> {
+  public getPossibleBreakpoints(scriptId: number, startLine: number, endLine?: number): Array<Breakpoint> {
     const array = [];
     const lineList = this.lineLists[scriptId];
     for (const line in lineList) {
@@ -236,18 +236,18 @@ export class JerryDebugProtocolHandler {
     return array;
   }
 
-  getSource(scriptId: number) {
+  public getSource(scriptId: number): string {
     if (scriptId < this.sources.length) {
       return this.sources[scriptId].source || '';
     }
     return '';
   }
 
-  decodeMessage(format: string, message: Uint8Array, offset: number) {
+  public decodeMessage(format: string, message: Uint8Array, offset: number): any {
     return decodeMessage(this.byteConfig, format, message, offset);
   }
 
-  onConfiguration(data: Uint8Array) {
+  public onConfiguration(data: Uint8Array): void {
     this.logPacket('Configuration');
     if (data.length < 5) {
       this.abort('configuration message wrong size');
@@ -268,7 +268,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onByteCodeCP(data: Uint8Array) {
+  public onByteCodeCP(data: Uint8Array): void {
     this.logPacket('Byte Code CP', true);
     if (this.evalsPending) {
       return;
@@ -313,7 +313,7 @@ export class JerryDebugProtocolHandler {
     this.newFunctions = {};
   }
 
-  onParseFunction(data: Uint8Array) {
+  public onParseFunction(data: Uint8Array): void {
     this.logPacket('Parse Function');
     const position = this.decodeMessage('II', data, 1);
     this.stack.push({
@@ -331,7 +331,7 @@ export class JerryDebugProtocolHandler {
     return;
   }
 
-  onBreakpointList(data: Uint8Array) {
+  public onBreakpointList(data: Uint8Array): void {
     this.logPacket('Breakpoint List', true);
     if (this.evalsPending) {
       return;
@@ -354,7 +354,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onSourceCode(data: Uint8Array) {
+  public onSourceCode(data: Uint8Array): void {
     this.logPacket('Source Code', true);
     if (this.evalsPending) {
       return;
@@ -391,7 +391,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onSourceCodeName(data: Uint8Array) {
+  public onSourceCodeName(data: Uint8Array): void {
     this.logPacket('Source Code Name');
     this.sourceNameData = assembleUint8Arrays(this.sourceNameData, data);
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_NAME_END) {
@@ -402,7 +402,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onFunctionName(data: Uint8Array) {
+  private onFunctionName(data: Uint8Array): void {
     this.logPacket('Function Name');
     this.functionNameData = assembleUint8Arrays(this.functionNameData, data);
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_FUNCTION_NAME_END) {
@@ -411,7 +411,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  releaseFunction(byteCodeCP: number) {
+  public releaseFunction(byteCodeCP: number): void {
     const func = this.functions[byteCodeCP];
 
     const lineList = this.lineLists[func.scriptId];
@@ -429,7 +429,7 @@ export class JerryDebugProtocolHandler {
     delete this.functions[byteCodeCP];
   }
 
-  onReleaseByteCodeCP(data: Uint8Array) {
+  private onReleaseByteCodeCP(data: Uint8Array): void {
     this.logPacket('Release Byte Code CP', true);
     if (!this.evalsPending) {
       const byteCodeCP = this.decodeMessage('C', data, 1)[0];
@@ -445,7 +445,7 @@ export class JerryDebugProtocolHandler {
     this.sendSimpleRequest(data);
   }
 
-  getBreakpoint(breakpointData: Array<number>) {
+  private getBreakpoint(breakpointData: Array<number>): JerryMessageBreakpointHit {
     const func = this.functions[breakpointData[0]];
     const offset = breakpointData[1];
 
@@ -477,7 +477,7 @@ export class JerryDebugProtocolHandler {
     };
   }
 
-  onBreakpointHit(data: Uint8Array) {
+  public onBreakpointHit(data: Uint8Array): void {
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_BREAKPOINT_HIT) {
       this.logPacket('Breakpoint Hit');
     } else {
@@ -520,7 +520,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  onBacktrace(data: Uint8Array): Breakpoint[] {
+  public onBacktrace(data: Uint8Array): Breakpoint[] {
     this.logPacket('Backtrace');
     for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
       const breakpointData = this.decodeMessage('CI', data, i);
@@ -568,7 +568,7 @@ export class JerryDebugProtocolHandler {
     return result;
   }
 
-  onMessage(message: Uint8Array) {
+  public onMessage(message: Uint8Array): void {
     if (message.byteLength < 1) {
       this.abort('message too short');
       return;
@@ -606,7 +606,7 @@ export class JerryDebugProtocolHandler {
     }
   }
 
-  getLastBreakpoint() {
+  public getLastBreakpoint(): Breakpoint {
     return this.lastBreakpointHit;
   }
 
@@ -616,7 +616,7 @@ export class JerryDebugProtocolHandler {
     throw new Error('no such source');
   }
 
-  getActiveBreakpoint(breakpointId: number) {
+  public getActiveBreakpoint(breakpointId: number): Breakpoint {
     return this.activeBreakpoints[breakpointId];
   }
 
@@ -695,7 +695,7 @@ export class JerryDebugProtocolHandler {
     ]));
   }
 
-  requestBacktrace() {
+  public requestBacktrace(): Promise<any> {
     if (!this.lastBreakpointHit) {
       return Promise.reject('backtrace not allowed while app running');
     }
@@ -768,7 +768,7 @@ export class JerryDebugProtocolHandler {
     return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
   }
 
-  onWaitForSource() {
+  public onWaitForSource(): void {
     this.waitForSourceEnabled = true;
     if (this.delegate.onWaitForSource) {
       this.delegate.onWaitForSource();
@@ -805,7 +805,7 @@ export class JerryDebugProtocolHandler {
     return true;
   }
 
-  onExceptionStr(data: Uint8Array) {
+  private onExceptionStr(data: Uint8Array): void {
       this.logPacket('onExceptionStr');
       this.exceptionData = assembleUint8Arrays(this.exceptionData, data);
       if (data[0] === SP.SERVER.JERRY_DEBUGGER_EXCEPTION_STR_END) {
