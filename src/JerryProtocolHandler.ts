@@ -44,7 +44,7 @@ export interface ParserStackFrame {
 
 export interface JerryDebugProtocolDelegate {
   onBacktrace?(backtrace: Array<Breakpoint>): void;
-  onBreakpointHit?(message: JerryMessageBreakpointHit): void;
+  onBreakpointHit?(message: JerryMessageBreakpointHit, stopType: string): void;
   onExceptionHit?(message: JerryMessageExceptionHit): void;
   onEvalResult?(subType: number, result: string): void;
   onError?(code: number, message: string): void;
@@ -96,6 +96,10 @@ interface LineFunctionMap {
 interface ParsedSource {
   name?: string;
   source?: string;
+}
+
+interface StopTypeMap {
+  [type: number]: string;
 }
 
 class PendingRequest {
@@ -153,6 +157,8 @@ export class JerryDebugProtocolHandler {
   private log: LoggerFunction;
   private requestQueue: PendingRequest[];
   private currentRequest: PendingRequest;
+  private stopTypeMap: StopTypeMap;
+  private lastStopType: number;
 
   constructor(delegate: JerryDebugProtocolDelegate, log?: LoggerFunction) {
     this.delegate = delegate;
@@ -189,6 +195,15 @@ export class JerryDebugProtocolHandler {
 
     this.requestQueue = [];
     this.currentRequest = null;
+
+    this.stopTypeMap = {
+      [SP.CLIENT.JERRY_DEBUGGER_NEXT]: 'step',
+      [SP.CLIENT.JERRY_DEBUGGER_STEP]: 'step-in',
+      [SP.CLIENT.JERRY_DEBUGGER_FINISH]: 'step-out',
+      [SP.CLIENT.JERRY_DEBUGGER_CONTINUE]: 'continue',
+      [SP.CLIENT.JERRY_DEBUGGER_STOP]: 'pause',
+    };
+    this.lastStopType = null;
   }
 
   // FIXME: this lets test suite run for now
@@ -213,6 +228,8 @@ export class JerryDebugProtocolHandler {
     if (this.lastBreakpointHit) {
       return Promise.reject(new Error('attempted pause while at breakpoint'));
     }
+
+    this.lastStopType = SP.CLIENT.JERRY_DEBUGGER_STOP;
     return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [SP.CLIENT.JERRY_DEBUGGER_STOP]));
   }
 
@@ -516,8 +533,12 @@ export class JerryDebugProtocolHandler {
     }
 
     if (this.delegate.onBreakpointHit) {
-      this.delegate.onBreakpointHit(breakpointRef);
+      const stopTypeText = this.stopTypeMap[this.lastStopType] || 'entry';
+      const stopType = `${breakpoint.activeIndex === -1 ? 'inactive ' : ''}breakpoint (${stopTypeText})`;
+      this.delegate.onBreakpointHit(breakpointRef, stopType);
     }
+
+    this.lastStopType = null;
   }
 
   public onBacktrace(data: Uint8Array): Breakpoint[] {
@@ -721,6 +742,7 @@ export class JerryDebugProtocolHandler {
     }
 
     this.lastBreakpointHit = undefined;
+    this.lastStopType = code;
     const result = this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
 
     if (this.delegate.onResume) {
