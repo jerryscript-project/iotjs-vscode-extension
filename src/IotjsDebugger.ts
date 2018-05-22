@@ -122,9 +122,9 @@ class IotjsDebugSession extends DebugSession {
     this._args = args;
     this._debugLog = args.debugLog || false;
 
-    const onBreakpointHit = () => {
+    const onBreakpointHit = (breakpointRef, stopType) => {
       this.log('onBreakpointHit');
-      this.sendEvent(new StoppedEvent('breakpoint', IotjsDebugSession.THREAD_ID));
+      this.sendEvent(new StoppedEvent(stopType, IotjsDebugSession.THREAD_ID));
     };
 
     const onExceptionHit = (data: JerryMessageExceptionHit) => {
