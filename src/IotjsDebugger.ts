@@ -105,17 +105,17 @@ class IotjsDebugSession extends DebugSession {
     this.log('attachRequest');
 
     if (!args.address || args.address === '') {
-      this.sendErrorResponse(response, 0, 'Must specify an address');
+      this.sendErrorResponse(response, new Error('Must specify an address'));
       return;
     }
 
     if (!args.port || args.port <= 0 || args.port > 35535) {
-      this.sendErrorResponse(response, 0, 'Must specify a valid port');
+      this.sendErrorResponse(response, new Error('Must specify a valid port'));
       return;
     }
 
     if (!args.localRoot || args.localRoot === '') {
-      this.sendErrorResponse(response, 0, 'Must specify a localRoot');
+      this.sendErrorResponse(response, new Error('Must specify a localRoot'));
       return;
     }
 
@@ -187,7 +187,7 @@ class IotjsDebugSession extends DebugSession {
       })
       .catch(error => {
         this.log(error);
-        this.sendErrorResponse(response, 0, error.message);
+        this.sendErrorResponse(response, error);
       })
       .then(() => {
         this.sendEvent(new InitializedEvent());
@@ -197,7 +197,7 @@ class IotjsDebugSession extends DebugSession {
   protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
     this.log('launchRequest');
 
-    this.sendErrorResponse(response, 0, 'Launching is not supported. Use Attach.');
+    this.sendErrorResponse(response, new Error('Launching is not supported. Use Attach.'));
   }
 
   protected disconnectRequest(
@@ -224,7 +224,7 @@ class IotjsDebugSession extends DebugSession {
       .then(() => {
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+      .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
@@ -234,7 +234,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+    .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
@@ -244,7 +244,7 @@ class IotjsDebugSession extends DebugSession {
       .then(() => {
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+      .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
@@ -254,7 +254,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+    .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
@@ -264,7 +264,7 @@ class IotjsDebugSession extends DebugSession {
     .then(() => {
       this.sendResponse(response);
     })
-    .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+    .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected async setBreakPointsRequest(
@@ -312,7 +312,7 @@ class IotjsDebugSession extends DebugSession {
       response.body = { breakpoints: [...persistingBreakpoints, ...newBreakpoints] };
     } catch (error) {
       this.log(error);
-      this.sendErrorResponse(response, 0, (<Error>error).message);
+      this.sendErrorResponse(response, <Error>error);
       return;
     }
 
@@ -333,7 +333,7 @@ class IotjsDebugSession extends DebugSession {
 
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+      .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected stackTraceRequest(
@@ -359,7 +359,7 @@ class IotjsDebugSession extends DebugSession {
 
         this.sendResponse(response);
       })
-      .catch(error => this.sendErrorResponse(response, 0, (<Error>error).message));
+      .catch(error => this.sendErrorResponse(response, <Error>error));
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
@@ -377,7 +377,7 @@ class IotjsDebugSession extends DebugSession {
           .catch(error => {
             this.log(error);
             this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
-            this.sendErrorResponse(response, 0, (<Error>error).message, null, ErrorDestination.User);
+            this.sendErrorResponse(response, <Error>error, ErrorDestination.User);
           });
         return;
       }
@@ -385,6 +385,45 @@ class IotjsDebugSession extends DebugSession {
         super.customRequest(command, response, args);
     }
   }
+
+  // Overrides.
+
+  protected sendErrorResponse(
+    response: DebugProtocol.Response,
+    error: Error,
+    dest?: ErrorDestination
+  ): void;
+
+  protected sendErrorResponse(
+    response: DebugProtocol.Response,
+    codeOrMessage: number | DebugProtocol.Message,
+    format?: string,
+    variables?: any,
+    dest?: ErrorDestination
+  ): void;
+
+  protected sendErrorResponse(response: DebugProtocol.Response) {
+    if (arguments[1] instanceof Error) {
+      const error = arguments[1] as Error & {code?: number | string; errno?: number};
+      const dest = arguments[2] as ErrorDestination;
+
+      let code: number;
+
+      if (typeof error.code === 'number') {
+        code = error.code as number;
+      } else if (typeof error.errno === 'number') {
+        code = error.errno;
+      } else {
+        code = 0;
+      }
+
+      super.sendErrorResponse(response, code, error.message, dest);
+    } else {
+      super.sendErrorResponse(response, arguments[1], arguments[2], arguments[3], arguments[4]);
+    }
+  }
+
+  // Helper functions
 
   private handleSource(data: JerryMessageScriptParsed): void {
     const path = `${this._args.localRoot}/${this.pathToBasename(data.name)}`;
