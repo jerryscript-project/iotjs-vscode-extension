@@ -111,9 +111,9 @@
                 "default": true
               },
               "debugLog": {
-                "type": "boolean",
-                "description": "Allowes to log debug messages to the console.",
-                "default": false
+                "type": "number",
+                "description": "Set log level for the debugger: 0 none, 1 error, 2 session, 3 protocol, 4 verbose",
+                "default": 0
               }
             }
           }
@@ -130,7 +130,7 @@
               "port": 5001,
               "localRoot": "${workspaceRoot}",
               "stopOnEntry": false,
-              "debugLog": false
+              "debugLog": 0
             }
           }
         ]

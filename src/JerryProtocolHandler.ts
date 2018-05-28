@@ -22,10 +22,11 @@ import {
   decodeMessage, encodeMessage, stringToCesu8, setUint32
 } from './JerryUtils';
 import { JerryDebuggerClient } from './JerryDebuggerClient';
+import { LOG_LEVEL } from './IotjsDebuggerConstants';
 
 export type CompressedPointer = number;
 export type ByteCodeOffset = number;
-export type LoggerFunction = (message: any) => void;
+export type LoggerFunction = (message: any, level: number) => void;
 
 export interface ParserStackFrame {
   isFunc: boolean;
@@ -513,12 +514,12 @@ export class JerryDebugProtocolHandler {
     }
 
     const atAround = breakpointRef.exact ? 'at' : 'around';
-    this.log(`Stopped ${atAround} ${breakpointInfo}${breakpoint}`);
+    this.log(`Stopped ${atAround} ${breakpointInfo}${breakpoint}`, LOG_LEVEL.PROTOCOL);
 
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT) {
-      this.log('Exception throw detected');
+      this.log('Exception throw detected', LOG_LEVEL.ERROR);
       if (this.exceptionString) {
-        this.log(`Exception hint: ${this.exceptionString}`);
+        this.log(`Exception hint: ${this.exceptionString}`, LOG_LEVEL.ERROR);
       }
 
       if (this.delegate.onExceptionHit) {
@@ -726,12 +727,12 @@ export class JerryDebugProtocolHandler {
   logPacket(description: string, ignorable: boolean = false) {
     // certain packets are ignored while evals are pending
     const ignored = (ignorable && this.evalsPending) ? 'Ignored: ' : '';
-    this.log(`[Protocol Handler] ${ignored}${description}`);
+    this.log(`[Protocol Handler] ${ignored}${description}`, LOG_LEVEL.PROTOCOL);
   }
 
   private abort(message: string) {
     if (this.delegate.onError) {
-      this.log(`Abort: ${message}`);
+      this.log(`Abort: ${message}`, LOG_LEVEL.ERROR);
       this.delegate.onError(0, message);
     }
   }

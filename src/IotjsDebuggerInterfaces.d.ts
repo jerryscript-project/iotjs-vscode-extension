@@ -26,7 +26,7 @@ export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArgu
   // Automatically stop target after launch.
   stopOnEntry?: boolean;
   // Allows to log debug messages to console.
-  debugLog?: boolean;
+  debugLog?: number;
   // Filename.
   program?: string;
   // Ask for filename if in wait-for-source mode.
