@@ -18,7 +18,7 @@
 
 import {
   DebugSession, InitializedEvent, OutputEvent, Thread, Source,
-  StoppedEvent, ContinuedEvent, StackFrame, TerminatedEvent, Event, ErrorDestination
+  StoppedEvent, StackFrame, TerminatedEvent, Event, ErrorDestination
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
@@ -27,7 +27,7 @@ import { IAttachRequestArguments, SourceSendingOptions, TemporaryBreakpoint } fr
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
-  JerryMessageExceptionHit
+  JerryMessageExceptionHit, JerryMessageBreakpointHit
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
 import { Breakpoint } from './JerryBreakpoints';
@@ -56,7 +56,7 @@ class IotjsDebugSession extends DebugSession {
     // Runtime supports now threads so just return a default thread.
     response.body = {
       threads: [
-        new Thread(IotjsDebugSession.THREAD_ID, 'thread 1')
+        new Thread(IotjsDebugSession.THREAD_ID, 'Main Thread')
       ]
     };
     this.sendResponse(response);
@@ -76,7 +76,8 @@ class IotjsDebugSession extends DebugSession {
     response.body.supportsFunctionBreakpoints = false;
     response.body.supportsEvaluateForHovers = false;
     response.body.supportsStepBack = false;
-    response.body.supportsRestartRequest = true;
+    response.body.supportsRestartRequest = false;
+    response.body.supportsDelayedStackTraceLoading = false;
 
     this._sourceSendingOptions = <SourceSendingOptions>{
       contextReset: false,
@@ -92,7 +93,6 @@ class IotjsDebugSession extends DebugSession {
     this.log('configurationDoneRequest', LOG_LEVEL.SESSION);
 
     super.configurationDoneRequest(response, args);
-    this.sendResponse(response);
   }
 
   protected attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
@@ -113,58 +113,18 @@ class IotjsDebugSession extends DebugSession {
     }
 
     this._args = args;
-    if (args.debugLog in LOG_LEVEL) {
+    if (args.debugLog && args.debugLog in LOG_LEVEL) {
       this._debugLog = args.debugLog;
     } else {
       this.sendErrorResponse(response, new Error('No log level given'));
     }
     this.log('attachRequest');
 
-    const onBreakpointHit = (breakpointRef, stopType) => {
-      this.log('onBreakpointHit', LOG_LEVEL.SESSION);
-      this.sendEvent(new StoppedEvent(stopType, IotjsDebugSession.THREAD_ID));
-    };
-
-    const onExceptionHit = (data: JerryMessageExceptionHit) => {
-      this.log('onExceptionHit', LOG_LEVEL.SESSION);
-      this.sendEvent(new StoppedEvent('exception', IotjsDebugSession.THREAD_ID, data.message));
-    };
-
-    const onResume = () => {
-      this.log('onResume', LOG_LEVEL.SESSION);
-
-      this.sendEvent(new ContinuedEvent(IotjsDebugSession.THREAD_ID));
-    };
-
-    const onScriptParsed = data => {
-      this.log('onScriptParsed', LOG_LEVEL.SESSION);
-      this.handleSource(data);
-    };
-
-    const onClose = () => {
-      this.log('onClose', LOG_LEVEL.SESSION);
-      this.sendEvent(new TerminatedEvent());
-    };
-
-    const onWaitForSource = async () => {
-      this.log('onWaitForSource', LOG_LEVEL.SESSION);
-      if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
-        this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
-        this.sendEvent(new Event('waitForSource'));
-      } else if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.LAST_SENT) {
-        if (!this._sourceSendingOptions.contextReset) {
-          this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
-          this._protocolhandler.sendClientSourceControl(CLIENT_PACKAGE.JERRY_DEBUGGER_NO_MORE_SOURCES);
-        }
-      }
-    };
-
     const protocolDelegate = <JerryDebugProtocolDelegate>{
-      onBreakpointHit,
-      onExceptionHit,
-      onResume,
-      onScriptParsed,
-      onWaitForSource
+      onBreakpointHit: (ref: JerryMessageBreakpointHit, type: string) => this.onBreakpointHit(ref, type),
+      onExceptionHit: (data: JerryMessageExceptionHit) => this.onExceptionHit(data),
+      onScriptParsed: (data: JerryMessageScriptParsed) => this.onScriptParsed(data),
+      onWaitForSource: () => this.onWaitForSource()
     };
 
     this._protocolhandler = new JerryDebugProtocolHandler(
@@ -172,7 +132,7 @@ class IotjsDebugSession extends DebugSession {
     this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
       delegate: {
         onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
-        onClose
+        onClose: () => this.onClose()
       },
       host: args.address,
       port: args.port
@@ -318,47 +278,53 @@ class IotjsDebugSession extends DebugSession {
     this.sendResponse(response);
   }
 
-  protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
+  protected async evaluateRequest(
+    response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments
+  ): Promise<void> {
     this.log('evaluateRequest', LOG_LEVEL.SESSION);
 
-    this._protocolhandler.evaluate(args.expression)
-      .then((result: JerryEvalResult) => {
-        const value = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK ? result.value : 'Evaluate Error';
+    try {
+      const result: JerryEvalResult = await this._protocolhandler.evaluate(args.expression);
+      const value: string = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK
+                            ? result.value
+                            : 'Evaluate Error';
 
-        response.body = {
-          result: value,
-          variablesReference: 0
-        };
+      response.body = {
+        result: value,
+        variablesReference: 0
+      };
 
-        this.sendResponse(response);
-      })
-      .catch(error => this.sendErrorResponse(response, <Error>error));
+      this.sendResponse(response);
+    } catch (error) {
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
   }
 
-  protected stackTraceRequest(
+  protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
-  ): void {
+  ): Promise<void> {
     this.log('stackTraceRequest', LOG_LEVEL.SESSION);
 
-    this._protocolhandler.requestBacktrace()
-      .then(backtrace => {
-        const stk = backtrace.map((f, i) => new StackFrame(
-            i,
-            f.func.name || 'global',
-            this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
-            f.line,
-            f.func.column
-          )
-        );
+    try {
+      const backtrace = await this._protocolhandler.requestBacktrace();
+      const stk = backtrace.map((f, i) => new StackFrame(
+          1000 + i,
+          f.func.name || 'global',
+          this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
+          f.line,
+          f.func.column
+        )
+      );
 
-        response.body = {
-          stackFrames: stk,
-          totalFrames: stk.length,
-        };
+      response.body = {
+        stackFrames: stk,
+      };
 
-        this.sendResponse(response);
-      })
-      .catch(error => this.sendErrorResponse(response, <Error>error));
+      this.sendResponse(response);
+    } catch (error) {
+      this.log(error);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
@@ -422,7 +388,47 @@ class IotjsDebugSession extends DebugSession {
     }
   }
 
-  // Helper functions
+  // Helper functions for event handling
+
+  private onBreakpointHit(breakpointRef: JerryMessageBreakpointHit, stopType: string): void {
+    this.log('onBreakpointHit');
+
+    this.sendEvent(new StoppedEvent(stopType, IotjsDebugSession.THREAD_ID));
+  }
+
+  private onExceptionHit(data: JerryMessageExceptionHit): void {
+    this.log('onExceptionHit');
+
+    this.sendEvent(new StoppedEvent('exception', IotjsDebugSession.THREAD_ID, data.message));
+  }
+
+  private onScriptParsed(data: JerryMessageScriptParsed): void {
+    this.log('onScriptParsed');
+
+    this.handleSource(data);
+  }
+
+  private async onWaitForSource(): Promise<void> {
+    this.log('onWaitForSource');
+
+    if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
+      this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
+      this.sendEvent(new Event('waitForSource'));
+    } else if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.LAST_SENT) {
+      if (!this._sourceSendingOptions.contextReset) {
+        this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
+        this._protocolhandler.sendClientSourceControl(CLIENT_PACKAGE.JERRY_DEBUGGER_NO_MORE_SOURCES);
+      }
+    }
+  }
+
+  private onClose(): void {
+    this.log('onClose');
+
+    this.sendEvent(new TerminatedEvent());
+  }
+
+  // General helper functions
 
   private handleSource(data: JerryMessageScriptParsed): void {
     const path = `${this._args.localRoot}/${this.pathToBasename(data.name)}`;
@@ -451,7 +457,6 @@ class IotjsDebugSession extends DebugSession {
   private pathToBasename(path: string): string {
     if (path === '' || path === undefined) path = 'debug_eval.js';
     return Path.basename(path);
-
   }
 
   private log(message: any, level: number = LOG_LEVEL.VERBOSE): void {
