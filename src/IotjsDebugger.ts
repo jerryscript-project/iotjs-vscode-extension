@@ -31,13 +31,7 @@ import {
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
 import { Breakpoint } from './JerryBreakpoints';
-
-enum SOURCE_SENDING_STATES {
-  NOP = 0,
-  WAITING = 1,
-  IN_PROGRESS = 2,
-  LAST_SENT = 3
-}
+import { SOURCE_SENDING_STATES, LOG_LEVEL } from './IotjsDebuggerConstants';
 
 class IotjsDebugSession extends DebugSession {
 
@@ -45,7 +39,7 @@ class IotjsDebugSession extends DebugSession {
   private static THREAD_ID = 1;
 
   private _args: IAttachRequestArguments;
-  private _debugLog: boolean = false;
+  private _debugLog: number = 0;
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
   private _sourceSendingOptions: SourceSendingOptions;
@@ -75,7 +69,7 @@ class IotjsDebugSession extends DebugSession {
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.log('initializeRequest');
+    this.log('initializeRequest', LOG_LEVEL.SESSION);
 
     // This debug adapter implements the configurationDoneRequest.
     response.body.supportsConfigurationDoneRequest = true;
@@ -95,14 +89,13 @@ class IotjsDebugSession extends DebugSession {
   protected configurationDoneRequest(
     response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments
   ): void {
-    this.log('configurationDoneRequest');
+    this.log('configurationDoneRequest', LOG_LEVEL.SESSION);
 
     super.configurationDoneRequest(response, args);
     this.sendResponse(response);
   }
 
   protected attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
-    this.log('attachRequest');
 
     if (!args.address || args.address === '') {
       this.sendErrorResponse(response, new Error('Must specify an address'));
@@ -120,36 +113,41 @@ class IotjsDebugSession extends DebugSession {
     }
 
     this._args = args;
-    this._debugLog = args.debugLog || false;
+    if (args.debugLog in LOG_LEVEL) {
+      this._debugLog = args.debugLog;
+    } else {
+      this.sendErrorResponse(response, new Error('No log level given'));
+    }
+    this.log('attachRequest');
 
     const onBreakpointHit = (breakpointRef, stopType) => {
-      this.log('onBreakpointHit');
+      this.log('onBreakpointHit', LOG_LEVEL.SESSION);
       this.sendEvent(new StoppedEvent(stopType, IotjsDebugSession.THREAD_ID));
     };
 
     const onExceptionHit = (data: JerryMessageExceptionHit) => {
-      this.log('onExceptionHit');
+      this.log('onExceptionHit', LOG_LEVEL.SESSION);
       this.sendEvent(new StoppedEvent('exception', IotjsDebugSession.THREAD_ID, data.message));
     };
 
     const onResume = () => {
-      this.log('onResume');
+      this.log('onResume', LOG_LEVEL.SESSION);
 
       this.sendEvent(new ContinuedEvent(IotjsDebugSession.THREAD_ID));
     };
 
     const onScriptParsed = data => {
-      this.log('onScriptParsed');
+      this.log('onScriptParsed', LOG_LEVEL.SESSION);
       this.handleSource(data);
     };
 
     const onClose = () => {
-      this.log('onClose');
+      this.log('onClose', LOG_LEVEL.SESSION);
       this.sendEvent(new TerminatedEvent());
     };
 
     const onWaitForSource = async () => {
-      this.log('onWaitForSource');
+      this.log('onWaitForSource', LOG_LEVEL.SESSION);
       if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
         this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
         this.sendEvent(new Event('waitForSource'));
@@ -169,7 +167,8 @@ class IotjsDebugSession extends DebugSession {
       onWaitForSource
     };
 
-    this._protocolhandler = new JerryDebugProtocolHandler(protocolDelegate, message => this.log(message));
+    this._protocolhandler = new JerryDebugProtocolHandler(
+      protocolDelegate, message => this.log(message, LOG_LEVEL.SESSION));
     this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
       delegate: {
         onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
@@ -182,11 +181,11 @@ class IotjsDebugSession extends DebugSession {
 
     this._debuggerClient.connect()
       .then(() => {
-        this.log(`Connected to: ${args.address}:${args.port}`);
+        this.log(`Connected to: ${args.address}:${args.port}`, LOG_LEVEL.SESSION);
         this.sendResponse(response);
       })
       .catch(error => {
-        this.log(error);
+        this.log(error, LOG_LEVEL.ERROR);
         this.sendErrorResponse(response, error);
       })
       .then(() => {
@@ -195,7 +194,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
-    this.log('launchRequest');
+    this.log('launchRequest', LOG_LEVEL.SESSION);
 
     this.sendErrorResponse(response, new Error('Launching is not supported. Use Attach.'));
   }
@@ -203,7 +202,7 @@ class IotjsDebugSession extends DebugSession {
   protected disconnectRequest(
     response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments
   ): void {
-    this.log('disconnectRequest');
+    this.log('disconnectRequest', LOG_LEVEL.SESSION);
 
     this._debuggerClient.disconnect();
 
@@ -212,13 +211,13 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments): void {
-    this.log('restartRequest: Not implemented yet');
+    this.log('restartRequest: Not implemented yet', LOG_LEVEL.SESSION);
 
     this.sendResponse(response);
   }
 
   protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-    this.log('continueRequest');
+    this.log('continueRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.resume()
       .then(() => {
@@ -228,7 +227,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-    this.log('nextRequest');
+    this.log('nextRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.stepOver()
     .then(() => {
@@ -238,7 +237,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
-    this.log('stepInRequest');
+    this.log('stepInRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.stepInto()
       .then(() => {
@@ -248,7 +247,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
-    this.log('stepOutRequest');
+    this.log('stepOutRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.stepOut()
     .then(() => {
@@ -258,7 +257,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
-    this.log('pauseRequest');
+    this.log('pauseRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.pause()
     .then(() => {
@@ -270,7 +269,7 @@ class IotjsDebugSession extends DebugSession {
   protected async setBreakPointsRequest(
     response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    this.log('setBreakPointsRequest');
+    this.log('setBreakPointsRequest', LOG_LEVEL.SESSION);
 
     const filename: string = args.source.name;
     const vscodeBreakpoints: DebugProtocol.Breakpoint[] = args.breakpoints!.map(b => ({verified: false, line: b.line}));
@@ -289,7 +288,7 @@ class IotjsDebugSession extends DebugSession {
           await this._protocolhandler.updateBreakpoint(jerryBreakpoint, true);
           return <TemporaryBreakpoint>{verified: true, line: breakpoint.line};
         } catch (error) {
-          this.log(error);
+          this.log(error, LOG_LEVEL.ERROR);
           return <TemporaryBreakpoint>{verified: false, line: breakpoint.line, message: (<Error>error).message};
         }
       }));
@@ -311,7 +310,7 @@ class IotjsDebugSession extends DebugSession {
 
       response.body = { breakpoints: [...persistingBreakpoints, ...newBreakpoints] };
     } catch (error) {
-      this.log(error);
+      this.log(error, LOG_LEVEL.ERROR);
       this.sendErrorResponse(response, <Error>error);
       return;
     }
@@ -320,7 +319,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
-    this.log('evaluateRequest');
+    this.log('evaluateRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.evaluate(args.expression)
       .then((result: JerryEvalResult) => {
@@ -339,7 +338,7 @@ class IotjsDebugSession extends DebugSession {
   protected stackTraceRequest(
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
   ): void {
-    this.log('stackTraceRequest');
+    this.log('stackTraceRequest', LOG_LEVEL.SESSION);
 
     this._protocolhandler.requestBacktrace()
       .then(backtrace => {
@@ -363,19 +362,19 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
-    this.log('customRequest');
+    this.log('customRequest', LOG_LEVEL.SESSION);
 
     switch (command) {
       case 'sendSource': {
         this._sourceSendingOptions.state = SOURCE_SENDING_STATES.IN_PROGRESS;
         this._protocolhandler.sendClientSource(args.program.name, args.program.source)
           .then(() => {
-            this.log('Source has been sent to the engine.');
+            this.log('Source has been sent to the engine.', LOG_LEVEL.SESSION);
             this._sourceSendingOptions.state = SOURCE_SENDING_STATES.LAST_SENT;
             this.sendResponse(response);
           })
           .catch(error => {
-            this.log(error);
+            this.log(error, LOG_LEVEL.ERROR);
             this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
             this.sendErrorResponse(response, <Error>error, ErrorDestination.User);
           });
@@ -455,8 +454,8 @@ class IotjsDebugSession extends DebugSession {
 
   }
 
-  private log(message: any): void {
-    if (this._debugLog) {
+  private log(message: any, level: number = LOG_LEVEL.VERBOSE): void {
+    if (level === this._debugLog || this._debugLog === LOG_LEVEL.VERBOSE) {
       switch (typeof message) {
         case 'object':
           message = JSON.stringify(message, null, 2);

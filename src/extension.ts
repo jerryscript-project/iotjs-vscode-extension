@@ -28,7 +28,7 @@ const initialConfigurations = [{
   port: 5001,
   localRoot: '${workspaceRoot}',
   stopOnEntry: false,
-  debugLog: false
+  debugLog: 0
 }];
 
 const provideInitialConfigurations = (): string => {
