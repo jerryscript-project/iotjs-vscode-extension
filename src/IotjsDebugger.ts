@@ -23,6 +23,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
 import * as Path from 'path';
+import * as Util from 'util';
 import { IAttachRequestArguments, SourceSendingOptions, TemporaryBreakpoint } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
@@ -69,8 +70,6 @@ class IotjsDebugSession extends DebugSession {
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.log('initializeRequest', LOG_LEVEL.SESSION);
-
     // This debug adapter implements the configurationDoneRequest.
     response.body.supportsConfigurationDoneRequest = true;
     response.body.supportsFunctionBreakpoints = false;
@@ -90,8 +89,6 @@ class IotjsDebugSession extends DebugSession {
   protected configurationDoneRequest(
     response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments
   ): void {
-    this.log('configurationDoneRequest', LOG_LEVEL.SESSION);
-
     super.configurationDoneRequest(response, args);
   }
 
@@ -118,7 +115,6 @@ class IotjsDebugSession extends DebugSession {
     } else {
       this.sendErrorResponse(response, new Error('No log level given'));
     }
-    this.log('attachRequest');
 
     const protocolDelegate = <JerryDebugProtocolDelegate>{
       onBreakpointHit: (ref: JerryMessageBreakpointHit, type: string) => this.onBreakpointHit(ref, type),
@@ -128,7 +124,8 @@ class IotjsDebugSession extends DebugSession {
     };
 
     this._protocolhandler = new JerryDebugProtocolHandler(
-      protocolDelegate, message => this.log(message, LOG_LEVEL.SESSION));
+      protocolDelegate, (message: any, level: number = LOG_LEVEL.VERBOSE) => this.log(message, level)
+    );
     this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
       delegate: {
         onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
@@ -154,16 +151,12 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
-    this.log('launchRequest', LOG_LEVEL.SESSION);
-
     this.sendErrorResponse(response, new Error('Launching is not supported. Use Attach.'));
   }
 
   protected disconnectRequest(
     response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments
   ): void {
-    this.log('disconnectRequest', LOG_LEVEL.SESSION);
-
     this._debuggerClient.disconnect();
 
     this.sendEvent(new TerminatedEvent());
@@ -177,8 +170,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-    this.log('continueRequest', LOG_LEVEL.SESSION);
-
     this._protocolhandler.resume()
       .then(() => {
         this.sendResponse(response);
@@ -187,8 +178,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-    this.log('nextRequest', LOG_LEVEL.SESSION);
-
     this._protocolhandler.stepOver()
     .then(() => {
       this.sendResponse(response);
@@ -197,8 +186,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
-    this.log('stepInRequest', LOG_LEVEL.SESSION);
-
     this._protocolhandler.stepInto()
       .then(() => {
         this.sendResponse(response);
@@ -207,8 +194,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
-    this.log('stepOutRequest', LOG_LEVEL.SESSION);
-
     this._protocolhandler.stepOut()
     .then(() => {
       this.sendResponse(response);
@@ -217,8 +202,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): void {
-    this.log('pauseRequest', LOG_LEVEL.SESSION);
-
     this._protocolhandler.pause()
     .then(() => {
       this.sendResponse(response);
@@ -229,8 +212,6 @@ class IotjsDebugSession extends DebugSession {
   protected async setBreakPointsRequest(
     response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    this.log('setBreakPointsRequest', LOG_LEVEL.SESSION);
-
     const filename: string = args.source.name;
     const vscodeBreakpoints: DebugProtocol.Breakpoint[] = args.breakpoints!.map(b => ({verified: false, line: b.line}));
 
@@ -281,8 +262,6 @@ class IotjsDebugSession extends DebugSession {
   protected async evaluateRequest(
     response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments
   ): Promise<void> {
-    this.log('evaluateRequest', LOG_LEVEL.SESSION);
-
     try {
       const result: JerryEvalResult = await this._protocolhandler.evaluate(args.expression);
       const value: string = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK
@@ -303,8 +282,7 @@ class IotjsDebugSession extends DebugSession {
   protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
-    this.log('stackTraceRequest', LOG_LEVEL.SESSION);
-
+    this.log(args, LOG_LEVEL.SESSION);
     try {
       const backtrace = await this._protocolhandler.requestBacktrace();
       const stk = backtrace.map((f, i) => new StackFrame(
@@ -328,8 +306,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
-    this.log('customRequest', LOG_LEVEL.SESSION);
-
     switch (command) {
       case 'sendSource': {
         this._sourceSendingOptions.state = SOURCE_SENDING_STATES.IN_PROGRESS;
@@ -352,6 +328,28 @@ class IotjsDebugSession extends DebugSession {
   }
 
   // Overrides.
+  protected dispatchRequest(request: DebugProtocol.Request): void {
+    const log = `-> ${request.command}Request\n${Util.inspect(request, { depth: Infinity })}\n`;
+    this.log(log, LOG_LEVEL.SESSION);
+
+    super.dispatchRequest(request);
+  }
+
+  public sendResponse(response: DebugProtocol.Response): void {
+    const log = `<- ${response.command}Response\n${Util.inspect(response, { depth: Infinity })}\n`;
+    this.log(log, LOG_LEVEL.SESSION);
+
+    super.sendResponse(response);
+  }
+
+  public sendEvent(event: DebugProtocol.Event, bypassLog: boolean = false): void {
+    if (!bypassLog) {
+      const log = `<- ${event.event}Event\n${Util.inspect(event, { depth: Infinity })}\n`;
+      this.log(log, LOG_LEVEL.SESSION);
+    }
+
+    super.sendEvent(event);
+  }
 
   protected sendErrorResponse(
     response: DebugProtocol.Response,
@@ -391,25 +389,25 @@ class IotjsDebugSession extends DebugSession {
   // Helper functions for event handling
 
   private onBreakpointHit(breakpointRef: JerryMessageBreakpointHit, stopType: string): void {
-    this.log('onBreakpointHit');
+    this.log('onBreakpointHit', LOG_LEVEL.SESSION);
 
     this.sendEvent(new StoppedEvent(stopType, IotjsDebugSession.THREAD_ID));
   }
 
   private onExceptionHit(data: JerryMessageExceptionHit): void {
-    this.log('onExceptionHit');
+    this.log('onExceptionHit', LOG_LEVEL.SESSION);
 
     this.sendEvent(new StoppedEvent('exception', IotjsDebugSession.THREAD_ID, data.message));
   }
 
   private onScriptParsed(data: JerryMessageScriptParsed): void {
-    this.log('onScriptParsed');
+    this.log('onScriptParsed', LOG_LEVEL.SESSION);
 
     this.handleSource(data);
   }
 
   private async onWaitForSource(): Promise<void> {
-    this.log('onWaitForSource');
+    this.log('onWaitForSource', LOG_LEVEL.SESSION);
 
     if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
       this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
@@ -423,7 +421,7 @@ class IotjsDebugSession extends DebugSession {
   }
 
   private onClose(): void {
-    this.log('onClose');
+    this.log('onClose', LOG_LEVEL.SESSION);
 
     this.sendEvent(new TerminatedEvent());
   }
@@ -463,14 +461,14 @@ class IotjsDebugSession extends DebugSession {
     if (level === this._debugLog || this._debugLog === LOG_LEVEL.VERBOSE) {
       switch (typeof message) {
         case 'object':
-          message = JSON.stringify(message, null, 2);
+          message = Util.inspect(message, { depth: Infinity });
           break;
         default:
           message = message.toString();
           break;
       }
 
-      this.sendEvent(new OutputEvent(`[DS] ${message}\n`, 'console'));
+      this.sendEvent(new OutputEvent(`[${LOG_LEVEL[level]}] ${message}\n`, 'console'), true);
     }
   }
 }
