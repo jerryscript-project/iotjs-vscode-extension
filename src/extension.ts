@@ -83,12 +83,12 @@ const processCustomEvent = async (e: vscode.DebugSessionCustomEvent): Promise<an
   switch (e.event) {
     case 'waitForSource': {
       if (vscode.debug.activeDebugSession) {
-        const path = await getProgramName().then(path => path);
-        const source = getProgramSource(path);
+        const pathName = await getProgramName().then(path => path);
+        const source = getProgramSource(pathName);
 
         vscode.debug.activeDebugSession.customRequest('sendSource', {
           program: {
-            name: path.split('/').pop(),
+            name: pathName.split(path.delimiter).pop(),
             source
           }
         });

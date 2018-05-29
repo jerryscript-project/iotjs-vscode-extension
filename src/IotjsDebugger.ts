@@ -431,7 +431,7 @@ class IotjsDebugSession extends DebugSession {
   // General helper functions
 
   private handleSource(data: JerryMessageScriptParsed): void {
-    const path = `${this._args.localRoot}/${this.pathToBasename(data.name)}`;
+    const path = Path.join(`${this._args.localRoot}`, `${this.pathToBasename(data.name)}`);
     const src = this._protocolhandler.getSource(data.id);
 
     const write = c => Fs.writeSync(Fs.openSync(path, 'w'), c);
