@@ -727,7 +727,7 @@ export class JerryDebugProtocolHandler {
   logPacket(description: string, ignorable: boolean = false) {
     // certain packets are ignored while evals are pending
     const ignored = (ignorable && this.evalsPending) ? 'Ignored: ' : '';
-    this.log(`[Protocol Handler] ${ignored}${description}`, LOG_LEVEL.PROTOCOL);
+    this.log(`${ignored}${description}`, LOG_LEVEL.PROTOCOL);
   }
 
   private abort(message: string) {
