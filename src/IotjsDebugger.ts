@@ -428,22 +428,24 @@ class IotjsDebugSession extends DebugSession {
   // General helper functions
 
   private handleSource(data: JerryMessageScriptParsed): void {
-    const path = Path.join(`${this._args.localRoot}`, `${this.pathToBasename(data.name)}`);
     const src = this._protocolhandler.getSource(data.id);
+    if (src !== '') {
+      const path = Path.join(`${this._args.localRoot}`, `${this.pathToBasename(data.name)}`);
 
-    const write = c => Fs.writeSync(Fs.openSync(path, 'w'), c);
+      const write = c => Fs.writeSync(Fs.openSync(path, 'w'), c);
 
-    if (Fs.existsSync(path)) {
-      const content = Fs.readFileSync(path, {
-        encoding: 'utf8',
-        flag: 'r'
-      });
+      if (Fs.existsSync(path)) {
+        const content = Fs.readFileSync(path, {
+          encoding: 'utf8',
+          flag: 'r'
+        });
 
-      if (content !== src) {
+        if (content !== src) {
+          write(src);
+        }
+      } else {
         write(src);
       }
-    } else {
-      write(src);
     }
   }
 
