@@ -111,4 +111,4 @@ After the engine is running you can start the debug session inside the extension
 If the client (VSCode extension) is connected then you have to see that file which is running inside the engine in the vscode editor and you have to see where the execution is stopped. Now you can use the VSCode debug action bar to control the debug session.
 
 # License
-IoT.js Code is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
+IoT.js VSCode extension is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
