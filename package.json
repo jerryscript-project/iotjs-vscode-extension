@@ -1,0 +1,144 @@
+{
+  "name": "iotjs-vscode-extension",
+  "displayName": "IoT.js",
+  "description": "IoT.js Debugging, IntelliSense for Visual Studio Code",
+  "version": "0.0.1",
+  "publisher": "Samsung",
+  "author": {
+    "name": "Samsung Electronics Co., Ltd."
+  },
+  "homepage": "https://github.com/Samsung/iotjs-vscode-extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Samsung/iotjs-vscode-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Samsung/iotjs-vscode-extension/issues"
+  },
+  "license": "Apache-2.0",
+  "private": false,
+  "keywords": [
+    "iotjs",
+    "jerry",
+    "jerryscript",
+    "debug",
+    "debugger",
+    "javascript",
+    "js"
+  ],
+  "engines": {
+    "vscode": "^1.23.0",
+    "node": "^8.11.1"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.0",
+    "@types/node": "^10.0.2",
+    "@types/sinon": "^4.3.1",
+    "@types/ws": "^4.0.2",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "sinon": "^5.0.2",
+    "tslint": "^5.9.1",
+    "typescript": "^2.8.3",
+    "vscode": "^1.1.18"
+  },
+  "dependencies": {
+    "babel-preset-env": "^1.6.1",
+    "vscode-debugadapter": "^1.29.0",
+    "vscode-debugprotocol": "^1.29.0",
+    "ws": "^5.1.1"
+  },
+  "activationEvents": [
+    "onDebug",
+    "onCommand:iotjs-debug.initialConfigurations"
+  ],
+  "main": "./out/extension.js",
+  "files": [
+    "out/**"
+  ],
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "javascript"
+      },
+      {
+        "language": "typescript"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "iotjs",
+        "label": "IoT.js Debug",
+        "program": "./out/IotjsDebugger.js",
+        "runtime": "node",
+        "enableBreakpointsFor": {
+          "languageIds": [
+            "javascript",
+            "typescript"
+          ]
+        },
+        "initialConfigurations": "iotjs-debug.initialConfigurations",
+        "configurationAttributes": {
+          "attach": {
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "IP address on which the server listening. Default is 'localhost'.",
+                "default": "localhost"
+              },
+              "port": {
+                "type": "number",
+                "description": "Debug port to attach to. Default is 5001.",
+                "default": 5001
+              },
+              "localRoot": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The local source root.",
+                "default": null
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Autmoatically stop the program after launch,",
+                "default": true
+              },
+              "debugLog": {
+                "type": "number",
+                "description": "Set log level for the debugger: 0 none, 1 error, 2 session, 3 protocol, 4 verbose",
+                "default": 0
+              }
+            }
+          }
+        },
+        "configurationSnippets": [
+          {
+            "label": "IoT.js: Attach",
+            "description": "Attach to a running IoT.js or JerryScript.",
+            "body": {
+              "name": "IoT.js: Attach",
+              "type": "iotjs",
+              "request": "attach",
+              "address": "localhost",
+              "port": 5001,
+              "localRoot": "${workspaceRoot}",
+              "stopOnEntry": false,
+              "debugLog": 0
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
