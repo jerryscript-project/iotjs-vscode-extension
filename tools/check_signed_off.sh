@@ -35,7 +35,7 @@ function print_help
   echo "                    checking a pull request, perform strict check otherwise"
   echo ""
   echo "The last line of every commit message must follow the form of:"
-  echo "'IoT.js-Debug-DCO-1.0-Signed-off-by: NAME EMAIL', where NAME and EMAIL must"
+  echo "'IoT.js-VSCode-DCO-1.0-Signed-off-by: NAME EMAIL', where NAME and EMAIL must"
   echo "match the name and email address of the author of the commit (unless in"
   echo "tolerant mode)."
 }
@@ -91,7 +91,7 @@ if [ "$TOLERANT" == "no" ]
 then
   author_name=`git show -s --format=%an $commit_hash`
   author_email=`git show -s --format=%ae $commit_hash`
-  required_signed_off_by_line="IoT.js-Debug-DCO-1.0-Signed-off-by: $author_name $author_email"
+  required_signed_off_by_line="IoT.js-VSCode-DCO-1.0-Signed-off-by: $author_name $author_email"
 
   if [ "$actual_signed_off_by_line" != "$required_signed_off_by_line" ]
   then
@@ -100,7 +100,7 @@ then
   fi
 else
   echo -e "\e[1;33mWarning! The name and email address of the author of the $commit_hash commit is not checked in tolerant mode! \e[0m"
-  if echo "$actual_signed_off_by_line" | grep -q -v '^IoT.js-Debug-DCO-1.0-Signed-off-by:'
+  if echo "$actual_signed_off_by_line" | grep -q -v '^IoT.js-VSCode-DCO-1.0-Signed-off-by:'
   then
     echo -e "\e[1;33mSigned-off-by message is incorrect. The following line should be at the end of the $commit_hash commit's message: '$required_signed_off_by_line'. \e[0m"
     exit 1
