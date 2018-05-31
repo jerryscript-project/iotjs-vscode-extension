@@ -1,34 +1,32 @@
-# VSCode IoT.js Debug
-IoT.js and JerryScript debug adapter for Visual Studio Code.
+# IoT.js debug and language extension for VSCode.
+
+[![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 
 - [Introduction](#introduction)
 - [Features](#features)
 - [Requirements](#requirements)
-- [How to start](#how-to-start)
 - [How to use](#how-to-use)
 - [License](#license)
 
 # Introduction
-`IoT.js Debug` is a debugger extension for [Visual Studio Code](https://code.visualstudio.com/) that lets you debug the code which is running on a device and lets you upload your code to the device, directly from the VSCode over websocket communication.
+`IoT.js VSCode Extension` is a debugger and language (like intelliSense, hover, ...) extension for [Visual Studio Code](https://code.visualstudio.com/) that lets you debug the code which is running on a device, lets you upload your code to the device, directly from the VSCode over websocket communication and helps you to write code with [IoT.js](https://github.com/Samsung/iotjs).
 
 # Features
-Available Control commands:
-- Continue command
-- Pause command
-- Step-over command
-- Step-in command
-- Step-out command
-- Disconnect command
+- Debugger
+  - Available Control commands:
+    - Continue command
+    - Pause command
+    - Step-over command
+    - Step-in command
+    - Step-out command
+    - Disconnect command
 
-Available features:
-- Set/Remove breakpoint
-- Call stack display
-- Watch (evaluate expression)
-- Handle source receive from the engine
-- Sending source code from the vscode to the engine
-
-Currently in Progress features or commands:
-- IoT.js module based completion
+  - Available features:
+    - Set/Remove breakpoint
+    - Call stack display
+    - Watch (evaluate expression)
+    - Handle source receive from the engine
+    - Sending source code from the vscode to the engine
 
 # Requirements
 - The latest Vscode which is available [here](https://code.visualstudio.com/Download).
@@ -36,55 +34,8 @@ Currently in Progress features or commands:
 
 - (For development) Requires [node.js](https://nodejs.org/en/) v8.x.x or higher (latest one is recommended) and [npm](https://www.npmjs.com) 5.x.x or higher to be able to work properly.
 
-# How to start
-Getting the sources:
-
-```sh
-# Clone the repository to your local drive:
-$ git clone https://github.com/knightburton/vscode-iotjs-debug
-
-# Move into the directory
-$ cd vscode-iotjs-debug
-```
-
-The project requires node.js to build, the best way to install the node and the npm is the nvm (Node Version Manager):
-
-```sh
-# Install the latest nvm with the following command
-$ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.9/install.sh | bash
-
-# Reload your .bashrc
-$ source ~/.bashrc
-```
-
-Use the proper node.js and node package manager version:
-```sh
-# Install the latest node.js and npm with the nvm tool
-$ nvm install 9
-
-# If you have already installed the node.js and npm then make sure you are using the right version in the project folder
-$ nvm use 9
-```
-
-Install the project dependencies:
-```sh
-npm install
-```
-
-For the first time you have to build the project to be able to start the extension host, this will build the project into the `out` folder:
-```sh
-npm run compile
-```
-
-To start the extension you have to open the project in VSCode and you have to navigate to the Debug view (Ctrl+Shift+D).
-At the top of the debug panel you have to select the `Extension` option from the dropdown menu if you want to run the extension (or you have to select the `Extension Test` if you want to run the unit tests).
-After you selected the `Extension` option you can start the debug session by pressing the `F5` key or click on the green triangle shaped button next to the dropdown menu.
-This debug session will open up a new VSCode (Extension host) where our extension is installed and available.
-
-**Note:** When the extension host window is opened you do not have to rebuild the project if you make any changes on the code because vscode will automatically do that, the only thing you have to do is restart the main debug session in the main vscode window by hit the restart button in the debug action bar or press the Ctrl+Shift+F5 key combination.
-
 # How to use
-After the extension is running in the extension host window you have to open (or create a new) project folder where you have to define a `launch.json` configuration file inside the `.vscode` folder. In case of IoT.js Debug this configuration looks like this:
+You have to open (or create a new) project folder where you have to define a `launch.json` configuration file inside the `.vscode` folder. In case of IoT.js Debug this configuration looks like this:
 
 ```json
 {
@@ -98,7 +49,7 @@ After the extension is running in the extension host window you have to open (or
       "port": 5001,
       "localRoot": "${workspaceRoot}",
       "stopOnEntry": false,
-      "debugLog": true
+      "debugLog": 0
     },
   ]
 }
