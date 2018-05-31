@@ -1,15 +1,19 @@
 {
-  "name": "vscode-iotjs-debug",
-  "displayName": "VSCode IoT.js Debug",
-  "description": "IoT.js debug adapter for Visual Studio Code",
+  "name": "iotjs-vscode-extension",
+  "displayName": "IoT.js",
+  "description": "IoT.js Debugging, IntelliSense for Visual Studio Code",
   "version": "0.0.1",
   "publisher": "Samsung",
   "author": {
     "name": "Samsung Electronics Co., Ltd."
   },
+  "homepage": "https://github.com/Samsung/iotjs-vscode-extension",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/knightburton/vscode-iotjs-debug.git"
+    "url": "git+https://github.com/Samsung/iotjs-vscode-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Samsung/iotjs-vscode-extension/issues"
   },
   "license": "Apache-2.0",
   "private": false,
@@ -23,7 +27,7 @@
     "js"
   ],
   "engines": {
-    "vscode": "^1.22.0",
+    "vscode": "^1.23.0",
     "node": "^8.11.1"
   },
   "categories": [
