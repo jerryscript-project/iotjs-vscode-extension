@@ -282,7 +282,6 @@ class IotjsDebugSession extends DebugSession {
   protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
-    this.log(args, LOG_LEVEL.SESSION);
     try {
       const backtrace = await this._protocolhandler.requestBacktrace();
       const stk = backtrace.map((f, i) => new StackFrame(
