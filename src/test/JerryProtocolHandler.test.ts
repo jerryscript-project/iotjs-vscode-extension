@@ -366,6 +366,40 @@ suite('JerryProtocolHandler', () => {
         });
     });
 
+    suite('getSources', () => {
+        test('returns a sources array', () => {
+            const sources = [{
+                // Dummy, because the sources is 1-indexed
+            }, {
+                name: 'ble.js',
+                source: 'console.log("This is a module...");'
+            }, {
+                name: 'led-stripe.js',
+                source: 'const x = 10;'
+            }];
+
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).sources = sources;
+
+            const result = handler.getSources();
+            assert.strictEqual(result[0].name, 'ble.js');
+            assert.strictEqual(result[1].source, 'const x = 10;');
+            assert.strictEqual(result.length, 2);
+        });
+
+        test('returns an empty array', () => {
+            const sources = [{
+                // Dummy, because the sources is 1-indexed
+            }];
+
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).sources = sources;
+
+            const result = handler.getSources();
+            assert.strictEqual(result.length, 0);
+        });
+    });
+
     suite('evaluate', () => {
         test('sends single eval packet for short expressions', () => {
           const debugClient = {
@@ -452,6 +486,140 @@ suite('JerryProtocolHandler', () => {
           handler.onByteCodeCP(array);
           assert.throws(() => handler.findBreakpoint(1, 6));
           assert.strictEqual(handler.findBreakpoint(1, 4).line, 4);
+        });
+    });
+
+    suite('getActiveFunctionBreakpointsByScriptId', () => {
+        test('return a breakpoints array', () => {
+            const name = 'crane.js';
+            const scriptId = 11;
+            const func = {
+                scriptId,
+                lines: [
+                    {
+                        activeIndex: 3,
+                        func: { name }
+                    },
+                    {
+                        activeIndex: -1,
+                        func: { name }
+                    },
+                    {
+                        activeIndex: -1,
+                        func: { name }
+                    },
+                ],
+            };
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).functions = [ func ];
+            (handler as any).lineLists = {
+                [scriptId]: [[func], ['a', func], [func, 'b']],
+            };
+            const breakpoints = handler.getActiveFunctionBreakpointsByScriptId(scriptId);
+            assert.strictEqual(breakpoints[0].activeIndex, 3);
+            assert.strictEqual(breakpoints[0].func.name, name);
+            assert.strictEqual(breakpoints.length, 1);
+        });
+
+        test('throws error on invalid scriptId (0)', () => {
+            const scriptId = 0;
+            const handler = new JerryDebugProtocolHandler({});
+            assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+        });
+
+        test('throws error on invalid scriptId (greater than linelist length)', () => {
+            const scriptId = 4;
+            const handler = new JerryDebugProtocolHandler({});
+            assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+        });
+
+        test('return an empty array in case of no active functionbreakpoints', () => {
+            const name = 'lumbermill.js';
+            const scriptId = 1;
+            const func = {
+                scriptId,
+                lines: [
+                    {
+                        activeIndex: -1,
+                        func: { name }
+                    },
+                ],
+            };
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).functions = [ func ];
+            (handler as any).lineLists = {
+                [scriptId]: [[func], ['a', func], [func, 'b']],
+            };
+
+            const breakpoints = handler.getActiveFunctionBreakpointsByScriptId(scriptId);
+            assert.strictEqual(breakpoints.length, 0);
+        });
+    });
+
+    suite('getInactiveFunctionBreakpointsByScriptId', () => {
+        test('return a breakpoins array', () => {
+            const name = 'missing-data.js';
+            const scriptId = 9;
+            const func = {
+                scriptId,
+                lines: [
+                    {
+                        activeIndex: -1,
+                        func: { name }
+                    },
+                    {
+                        activeIndex: 4,
+                        func: { name }
+                    },
+                    {
+                        activeIndex: 5,
+                        func: { name }
+                    },
+                ],
+            };
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).functions = [ func ];
+            (handler as any).lineLists = {
+                [scriptId]: [[func], ['a', func], [func, 'b']],
+            };
+            const breakpoints = handler.getInactiveFunctionBreakpointsByScriptId(scriptId);
+            assert.strictEqual(breakpoints[0].activeIndex, -1);
+            assert.strictEqual(breakpoints[0].func.name, name);
+            assert.strictEqual(breakpoints.length, 1);
+        });
+
+        test('throws error on invalid scriptId (0)', () => {
+            const scriptId = 0;
+            const handler = new JerryDebugProtocolHandler({});
+            assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+        });
+
+        test('throws error on invalid scriptId (greater than linelist length)', () => {
+            const scriptId = 10;
+            const handler = new JerryDebugProtocolHandler({});
+            assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+        });
+
+        test('return an empty array in case of no inactive functionbreakpoints', () => {
+            const name = 'dust.js';
+            const scriptId = 7;
+            const func = {
+                scriptId,
+                lines: [
+                    {
+                        activeIndex: 4,
+                        func: { name }
+                    },
+                ],
+            };
+            const handler = new JerryDebugProtocolHandler({});
+            (handler as any).functions = [ func ];
+            (handler as any).lineLists = {
+                [scriptId]: [[func], ['a', func], [func, 'b']],
+            };
+
+            const breakpoints = handler.getInactiveFunctionBreakpointsByScriptId(scriptId);
+            assert.strictEqual(breakpoints.length, 0);
         });
     });
 

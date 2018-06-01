@@ -254,6 +254,11 @@ export class JerryDebugProtocolHandler {
     return array;
   }
 
+  public getSources(): ParsedSource[] {
+    // The first element is a dummy because sources is 1-indexed
+    return this.sources.slice(1);
+  }
+
   public getSource(scriptId: number): string {
     if (scriptId < this.sources.length) {
       return this.sources[scriptId].source || '';
@@ -646,6 +651,25 @@ export class JerryDebugProtocolHandler {
     return this.activeBreakpoints.filter(b => b.scriptId === scriptId);
   }
 
+  public getActiveFunctionBreakpointsByScriptId(scriptId: number): Breakpoint[] {
+    return this.getPossibleFunctionBreakpointsByScriptId(scriptId).filter(b => b.activeIndex !== -1);
+  }
+
+  public getInactiveFunctionBreakpointsByScriptId(scriptId: number): Breakpoint[] {
+    return this.getPossibleFunctionBreakpointsByScriptId(scriptId).filter(b => b.activeIndex === -1);
+  }
+
+  public getPossibleFunctionBreakpointsByScriptId(scriptId: number): Breakpoint[] {
+    if (scriptId <= 0 || scriptId >= this.lineLists.length) {
+      throw new Error('invalid script id');
+    }
+
+    const keys: string[] = Object.keys(this.functions).filter(f => this.functions[f].scriptId === scriptId);
+    const bps: Breakpoint[] = keys.map(key => this.functions[key].lines[Object.keys(this.functions[key].lines)[0]]);
+
+    return bps.length ? bps.filter(b => b.func.name !== '') : [];
+  }
+
   public evaluate(expression: string): Promise<any> {
     if (!this.lastBreakpointHit) {
       return Promise.reject(new Error('attempted eval while not at breakpoint'));
@@ -691,7 +715,7 @@ export class JerryDebugProtocolHandler {
     throw new Error('no breakpoint found');
   }
 
-  public updateBreakpoint(breakpoint: Breakpoint, enable: boolean): Promise<number> {
+  public updateBreakpoint(breakpoint: Breakpoint, enable: boolean): Promise<void> {
     let breakpointId;
 
     if (enable) {
