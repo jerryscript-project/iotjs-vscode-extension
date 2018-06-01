@@ -110,7 +110,7 @@ class IotjsDebugSession extends DebugSession {
     }
 
     this._args = args;
-    if (args.debugLog && args.debugLog in LOG_LEVEL) {
+    if (args.debugLog in LOG_LEVEL) {
       this._debugLog = args.debugLog;
     } else {
       this.sendErrorResponse(response, new Error('No log level given'));
