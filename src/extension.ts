@@ -51,7 +51,7 @@ const walkSync = (dir: string, filelist: string[] = []): string[] => {
       : filelist.concat(path.join(dir, file));
   });
 
-  return filelist.filter(f => path.extname(f).toLowerCase().match(/\.(js)$/i) && f !== '');
+  return filelist.filter(f => path.extname(f).toLowerCase().match(/\.(js)$/i) && f !== '' && (fs.statSync(f).size) > 0);
 };
 
 const getListOfFiles = (): string[] => {
