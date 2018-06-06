@@ -3,6 +3,7 @@ import { Breakpoint } from '../JerryBreakpoints';
 import { JerryDebugProtocolHandler } from '../JerryProtocolHandler';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
+import { stringToCesu8 } from '../JerryUtils';
 
 // utility function
 function encodeArray(byte: number, str: string) {
@@ -14,14 +15,26 @@ function encodeArray(byte: number, str: string) {
     return array;
 }
 
-function setupHaltedProtocolHandler() {
+function setupHaltedProtocolHandler(isThereBreakpointHit: boolean = false) {
     const debugClient = {
       send: sinon.spy(),
     };
     const handler = new JerryDebugProtocolHandler({});
     handler.debuggerClient = debugClient as any;
     // For these tests mock the current breakpoint by setting the private lastBreakpointHit member:
-    (handler as any).lastBreakpointHit = {} as Breakpoint;
+    if (!isThereBreakpointHit) {
+      (handler as any).lastBreakpointHit = {} as Breakpoint;
+    } else {
+      const bp: any = {
+        activeIndex: 4,
+        func: {
+        byteCodeCP: 42,
+        },
+        offset: 10,
+      };
+
+      (handler as any).lastBreakpointHit = bp as Breakpoint;
+    }
     return { handler, debugClient };
 }
 
@@ -633,9 +646,9 @@ suite('JerryProtocolHandler', () => {
             const bp: any = { activeIndex: 3 };
             const handler = new JerryDebugProtocolHandler({});
             await handler.updateBreakpoint(bp, true)
-                .catch(error => {
-                    assert.strictEqual((<Error>error).message, 'breakpoint already enabled');
-                });
+              .catch(error => {
+                assert.strictEqual((<Error>error).message, 'breakpoint already enabled');
+              });
         });
 
         test('throws on disabling inactive breakpoint', async () => {
@@ -643,9 +656,9 @@ suite('JerryProtocolHandler', () => {
             const bp: any = { activeIndex: -1 };
             const handler = new JerryDebugProtocolHandler({});
             await handler.updateBreakpoint(bp, false)
-                .catch(error => {
-                    assert.strictEqual((<Error>error).message, 'breakpoint already disabled');
-                });
+              .catch(error => {
+                assert.strictEqual((<Error>error).message, 'breakpoint already disabled');
+              });
         });
 
         test('enables inactive breakpoint successfully', async () => {
@@ -758,5 +771,106 @@ suite('JerryProtocolHandler', () => {
           handler.stepOver();
           assert(debugClient.send.withArgs(Uint8Array.from([SP.CLIENT.JERRY_DEBUGGER_NEXT])));
         });
+
+
+        test('sends the expected message when calling resume()', () => {
+          const { handler, debugClient } = setupHaltedProtocolHandler();
+          handler.resume();
+          assert(debugClient.send.withArgs(Uint8Array.from([SP.CLIENT.JERRY_DEBUGGER_CONTINUE])));
+        });
+
+        test('pause() throwing error when pausing at breakpoint', async () => {
+          const { handler } = setupHaltedProtocolHandler(true);
+          await handler.pause()
+            .catch(error => {
+              assert.strictEqual((<Error>error).message, 'attempted pause while at breakpoint');
+            });
+        });
+
+        test('pause() sending the expected message', () => {
+          const { handler, debugClient } = setupHaltedProtocolHandler();
+          handler.pause();
+          assert(debugClient.send.withArgs(Uint8Array.from([SP.CLIENT.JERRY_DEBUGGER_STOP])));
+        });
+    });
+
+    suite('getLastBreakpoint()', () => {
+      test('returns with the correct breakpoint', () => {
+        const { handler } = setupHaltedProtocolHandler(true);
+        const bp: any = {
+          activeIndex: 4,
+          func: {
+          byteCodeCP: 42,
+          },
+          offset: 10,
+        };
+        assert.deepStrictEqual(handler.getLastBreakpoint(), bp);
+      });
+    });
+
+    suite('sendClientSourceControl()', () => {
+      test('throws if index is -1', async () => {
+        const handler = new JerryDebugProtocolHandler({});
+        await handler.sendClientSourceControl(-1)
+          .catch(error => {
+            assert.strictEqual((<Error>error).message, 'Invalid source sending control code.');
+          });
+      });
+
+      test('sends with correct args', () => {
+        const { handler, debugClient } = setupHaltedProtocolHandler();
+        const defConfig = {
+          cpointerSize: 2,
+          littleEndian: true,
+        };
+
+        const altConfig = {
+          cpointerSize: 4,
+          littleEndian: true,
+        };
+        handler.debuggerClient = debugClient as any;
+        handler.sendClientSourceControl(10);
+        assert(debugClient.send.withArgs(defConfig, 'B', 10));
+        assert(debugClient.send.withArgs(altConfig, 'B', 10));
+        });
+
+      test('sends with correct args2', () => {
+        const { handler, debugClient } = setupHaltedProtocolHandler();
+        const defConfig = {
+          cpointerSize: 2,
+          littleEndian: false,
+        };
+        const  altConfig = {
+          cpointerSize: 4,
+          littleEndian: false,
+        };
+        handler.debuggerClient = debugClient as any;
+        handler.sendClientSourceControl(10);
+        assert(debugClient.send.withArgs(defConfig, 'B', 10));
+        assert(debugClient.send.withArgs(altConfig, 'B', 10));
+      });
+    });
+
+    suite('sendClientSource()', () => {
+      test('throws if waitForSource is not enabled', async () => {
+        const handler = new JerryDebugProtocolHandler({});
+        await handler.sendClientSource('onelittlekitten', 'and some more')
+          .catch(error => {
+            assert.strictEqual((<Error>error).message, 'wait-for-source not enabled');
+          });
+      });
+
+      test('if byteLength is less than maxMessageSize send the array', () => {
+        const { handler, debugClient } = setupHaltedProtocolHandler();
+        const defConfig = {
+          cpointerSize: 2,
+          littleEndian: false,
+        };
+        (handler as any).maxMessageSize = 100;
+        let array = stringToCesu8(`onelittlekitten\0and some more`, 5, defConfig );
+        (handler as any).onWaitForSource();
+        handler.sendClientSource('onelittlekitten', 'and some more');
+        assert(debugClient.send.withArgs(array));
+      });
     });
 });
