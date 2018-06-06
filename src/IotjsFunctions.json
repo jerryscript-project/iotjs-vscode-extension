@@ -1,0 +1,1246 @@
+{
+  "adc": [
+    {
+      "label": "read",
+      "kind": 2,
+      "detail": "adc.read(callback)",
+      "documentation": "* `callback` {Function}\n  * `err`: {Error|null}\n\nReads the analog value from the pin asynchronously.\n\n`callback` will be called having read the analog value.\n",
+      "insertText": "read"
+    },
+    {
+      "label": "readSync",
+      "kind": 2,
+      "detail": "adc.readSync()",
+      "documentation": "* Returns: `{int}` Analog value.\n\nReads the analog value from the pin synchronously.\n",
+      "insertText": "readSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "adc.close([callback])",
+      "documentation": "* `callback` {Function}\n  * `err`: {Error|null}\n\nCloses ADC pin asynchronously. This function must be called after the work of ADC finished.\n\n`callback` will be called after ADC device is released.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "adc.closeSync()",
+      "documentation": "\nCloses ADC pin synchronously. This function must be called after the work of ADC finished.\n",
+      "insertText": "closeSync"
+    }
+  ],
+  "assert": [
+    {
+      "label": "assert",
+      "kind": 2,
+      "detail": "assert(value[, message])",
+      "documentation": "* `value` {any} Value to test.\n* `message` {any} Message displayed in the thrown error.\n\nChecks if the `value` is truthy. If it is not, throws an AssertionError, with the given optional `message`.\n",
+      "insertText": "assert"
+    },
+    {
+      "label": "doesNotThrow",
+      "kind": 2,
+      "detail": "doesNotThrow(block[, message])",
+      "documentation": "* `block` {Function}\n* `message` {any} Message to be displayed.\n\nTests if the given `block` does not throw any exception. Otherwise throws an\nexception with the given optional `message`.\n",
+      "insertText": "doesNotThrow"
+    },
+    {
+      "label": "equal",
+      "kind": 2,
+      "detail": "equal(actual, expected[, message])",
+      "documentation": "* `actual` {any} The actual value.\n* `expected` {any} The expected value.\n* `message` {any} Message to be displayed.\n\nTests if `actual == expected` is evaluated to `true`. Otherwise throws an\nexception with the given optional `message`.\n",
+      "insertText": "equal"
+    },
+    {
+      "label": "fail",
+      "kind": 2,
+      "detail": "fail(actual, expected, message, operator)",
+      "documentation": "* `actual` {any} The actual value.\n* `expected` {any} The expected value.\n* `message` {any} Message to be displayed.\n* `operator` {string} The operator.\n\nThrows an `AssertionError` exception with the given `message`.\n",
+      "insertText": "fail"
+    },
+    {
+      "label": "notEqual",
+      "kind": 2,
+      "detail": "notEqual(actual, expected[, message])",
+      "documentation": "* `actual` {any} The actual value.\n* `expected` {any} The expected value.\n* `message` {any} Message to be displayed.\n\nTests if `actual != expected` is evaluated to `true`. Otherwise throws an\nexception with the given optional `message`.\n",
+      "insertText": "notEqual"
+    },
+    {
+      "label": "notStrictEqual",
+      "kind": 2,
+      "detail": "notStrictEqual(actual, expected[, message])",
+      "documentation": "* `actual` {any} The actual value.\n* `expected` {any} The expected value.\n* `message` {any} Message to be displayed.\n\nTests if `actual !== expected` is evaluated to `true`. Otherwise throws an exception\nwith the given optional `message`.\n",
+      "insertText": "notStrictEqual"
+    },
+    {
+      "label": "strictEqual",
+      "kind": 2,
+      "detail": "strictEqual(actual, expected[, message])",
+      "documentation": "* `actual` {any} The actual value.\n* `expected` {any} The expected value.\n* `message` {any} Message to be displayed.\n\nTests if `actual === expected` is evaluated to `true`. Otherwise throws an exception\nwith the given optional `message`.\n",
+      "insertText": "strictEqual"
+    },
+    {
+      "label": "throws",
+      "kind": 2,
+      "detail": "throws(block[, expected, message])",
+      "documentation": "* `block` {Function} The function that throws an error.\n* `expected` {Function} The expected error type.\n* `message` {any} Message to be displayed.\n\nTests if the given `block` throws an `expected` error. Otherwise throws an exception\nwith the given optional `message`.\n",
+      "insertText": "throws"
+    }
+  ],
+  "ble": [
+    {
+      "label": "startAdvertising",
+      "kind": 2,
+      "detail": "ble.startAdvertising(name, serviceUuids[, callback])",
+      "documentation": "* `name` {string} Maximum 26 bytes.\n* `serviceUuids` {Array[String]}\n  * 1 128-bit service UUID\n  * 1 128-bit service UUID + 2 16-bit service UUIDs\n  * 7 16-bit service UUID\n* `callback` {Function} Error handler.\n  * `error` {Error}\n\nStarts advertising.\n\n`ble.state` must be in poweredOn state before advertising is started.\n`ble.on('stateChange', callback(state));` can be used to register for state change events.\n",
+      "insertText": "startAdvertising"
+    },
+    {
+      "label": "stopAdvertising",
+      "kind": 2,
+      "detail": "ble.stopAdvertising(callback)",
+      "documentation": "* `callback` {Function} Error handler.\n  * `error` {Error}\n\nStops advertising.\n\n",
+      "insertText": "stopAdvertising"
+    },
+    {
+      "label": "setServices",
+      "kind": 2,
+      "detail": "ble.setServices(services[, callback])",
+      "documentation": "* `services` {Array[PrimaryService]}\n* `callback` {Function} Error handler.\n  * `error` {Error}\n\nSets the primary services available on the peripheral.\n\n\n## Class: Descriptor\n\nDescriptors are defined attributes that describe a characteristic value.\n",
+      "insertText": "setServices"
+    }
+  ],
+  "buffer": [
+    {
+      "label": "byteLength",
+      "kind": 2,
+      "detail": "Buffer.byteLength(str, encoding)",
+      "documentation": "\n* `str` {string} Source string.\n* `encoding` {string} String encoding.\n* Returns: {integer} Byte length of source string.\n\nReturns the byte length of a buffer representing the value\nof the string argument encoded with encoding. The effect is\nthe same as:\n\n```js\nreturn new Buffer(str, encoding).length;\n```\n",
+      "insertText": "byteLength"
+    },
+    {
+      "label": "concat",
+      "kind": 2,
+      "detail": "Buffer.concat(list)",
+      "documentation": "* `list` {Array} An array of `Buffer` objects.\n* Returns: {Buffer} Concatenated buffer.\n\nReturns the concatenation of the `Buffer` objects\nprovided in the `list` array.\n",
+      "insertText": "concat"
+    },
+    {
+      "label": "isBuffer",
+      "kind": 2,
+      "detail": "Buffer.isBuffer(obj)",
+      "documentation": "* `obj` {Object}\n* Returns: {boolean}\n\nReturns `true` if `obj` is an instance of `Buffer`. Returns\n`false` otherwise.\n",
+      "insertText": "isBuffer"
+    },
+    {
+      "label": "compare",
+      "kind": 2,
+      "detail": "buf.compare(otherBuffer)",
+      "documentation": "* `otherBuffer` {Buffer} The right-hand side of the comparison.\n* Returns: {integer}\n\nThis function performs a lexicographic comparison between\ntwo buffers.\n\nIt returns with `0` if the two buffers are the same. Otherwise\nit returns with `-1` if the first different byte is lower for\n`buf`, and `1` if the byte is higher. If the length of the two\nbuffers are different, the comparison is performed until the\nlower length is reached. If all bytes are the same the function\nreturns with `-1` if `buf.length` is less than `otherBuffer.length`\nand `1` otherwise.\n",
+      "insertText": "compare"
+    },
+    {
+      "label": "copy",
+      "kind": 2,
+      "detail": "buf.copy(targetBuffer[, targetStart[, sourceStart[, sourceEnd]]])",
+      "documentation": "* `targetBuffer` {Buffer} The buffer to be modified.\n* `targetStart` {Integer} **Default:** `0`\n* `sourceStart` {integer} **Default:** `0`\n* `sourceEnd` {integer} **Default:** `buf.length`\n* Returns: {integer} The number of bytes copied.\n\nCopy a sequence of bytes from `buf` buffer to `targetBuffer` buffer.\nThe source byte range is specified by `sourceStart` and `sourceEnd`\nand the destination byte offset is specified by `targetStart`. Only\nthe `targetBuffer` is modified.\n",
+      "insertText": "copy"
+    },
+    {
+      "label": "equals",
+      "kind": 2,
+      "detail": "buf.equals(otherBuffer)",
+      "documentation": "* `otherBuffer` {Buffer} The right-hand side of the comparison.\n* Returns: {boolean}\n\nReturns `true` if `this` and `otherBuffer` have exactly the\nsame bytes. Returns `false` otherwise. The effect is the same as:\n\n```js\nreturn buf.compare(otherBuffer) == 0;\n```\n",
+      "insertText": "equals"
+    },
+    {
+      "label": "fill",
+      "kind": 2,
+      "detail": "buf.fill(value)",
+      "documentation": "* `value` {integer} All bytes are set to this value.\n* Returns: {Buffer} The original buffer.\n\nSet all bytes of the buffer to value. The value is converted to\ninteger first and its modulo 256 remainder is used for updating\nthe buffer. Returns with `buf`.\n",
+      "insertText": "fill"
+    },
+    {
+      "label": "slice",
+      "kind": 2,
+      "detail": "buf.slice([start[, end]])",
+      "documentation": "* `start` {integer} **Default:** `0`\n* `end` {integer} **Default:** `buf.length`\n* Returns: {Buffer} A newly created buffer.\n\nThis function returns with a newly created buffer which\ncontains the bytes of the `buf` buffer between `start`\nand `end`.\n",
+      "insertText": "slice"
+    },
+    {
+      "label": "toString",
+      "kind": 2,
+      "detail": "buf.toString([start[, end]])",
+      "documentation": "* `start` {integer} **Default:** `0`\n* `end` {integer} **Default:** `buffer.length`\n* Returns: {string}\n\nReturns a string created from the bytes stored in the buffer.\nBy passing `start` and `end` the conversion can be limited\nto a subset of the `buf` buffer. If a single `hex` string is\npassed to the function, the whole buffer is converted to\nhexadecimal data.\n",
+      "insertText": "toString"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "buf.write(string[, offset[, length]])",
+      "documentation": "* `string` {string} Data to be written into buffer.\n* `offset` {integer} Start position of writing. **Default:** `0`\n* `length` {integer} How many bytes to write. **Default:** `buffer.length - offset`.\n* Returns: {integer} Total number of bytes written.\n\nWrites `string` into the `buf` buffer. The start position of the\nwriting can be specified by `offset` and the maximum number of\nupdated bytes can be limited by `length`. Returns total number\nof bytes written to the buffer.\n",
+      "insertText": "write"
+    },
+    {
+      "label": "writeUInt8",
+      "kind": 2,
+      "detail": "buf.writeUInt8(value, offset[, noAssert])",
+      "documentation": "* `value` {integer} Number to be written into the buffer.\n* `offset` {integer} Start position of the writing.\n* `noAssert` {boolean} Skip argument validation. **Default:** `false`\n* Returns: {number} Offset plus the number of bytes written.\n\nWrites `value` into the buffer starting from `offset` position.\nThe `value` must be a valid 8-bit unsigned integer.\n\nIf `noAssert` is set and the value is outside of the expected range\nor the offset is higher than the size of the buffer the operation\nis undefined.\n",
+      "insertText": "writeUInt8"
+    },
+    {
+      "label": "writeUInt16LE",
+      "kind": 2,
+      "detail": "buf.writeUInt16LE(value, offset[, noAssert])",
+      "documentation": "* `value` {integer} Number to be written into the buffer.\n* `offset` {integer} Start position of the writing.\n* `noAssert` {boolean} Skip argument validation. **Default:** `false`\n* Returns: {integer} Offset plus the number of bytes written.\n\nWrites `value` into the buffer starting from `offset` position\nwith little endian format. The `value` must be a valid 16-bit\nunsigned integer.\n\nIf `noAssert` is set and the value is outside of the expected range\nor the offset is higher than the size of the buffer the operation\nis undefined.\n",
+      "insertText": "writeUInt16LE"
+    },
+    {
+      "label": "writeUInt32LE",
+      "kind": 2,
+      "detail": "buf.writeUInt32LE(value, offset[, noAssert])",
+      "documentation": "* `value` {integer} Number to be written into the buffer.\n* `offset` {integer} Start position of the writing.\n* `noAssert` {boolean} Skip argument validation. **Default:** `false`\n* Returns: {integer} Offset plus the number of bytes written.\n\nWrites `value` into the buffer starting from `offset` position\nwith little endian format. The `value` must be a valid 32-bit\nunsigned integer.\n\nIf `noAssert` is set and the value is outside of the expected range\nor the offset is higher than the size of the buffer the operation\nis undefined.\n",
+      "insertText": "writeUInt32LE"
+    },
+    {
+      "label": "readInt8",
+      "kind": 2,
+      "detail": "buf.readInt8(offset[, noAssert])",
+      "documentation": "* `offset` {number} Start position of buffer for reading.\n* `noAssert` {boolean} Skip offset validation. **Default:** `false`\n* Returns: {number}\n\nReads a signed 8-bit integer from `buf` buffer starting from\n`offset` position.\n\nIf `noAssert` is set and the offset is higher than the size of\nthe buffer the result is undefined.\n",
+      "insertText": "readInt8"
+    },
+    {
+      "label": "readUInt8",
+      "kind": 2,
+      "detail": "buf.readUInt8(offset[, noAssert])",
+      "documentation": "* `offset` {integer} Start position of the reading.\n* `noAssert` {boolean} Skip argument validation. **Default:** `false`\n* Returns: {number}\n\nReads an unsigned 8-bit integer from `buf` buffer starting from\n`offset` position.\n\nIf `noAssert` is set and the offset is higher than the size of\nthe buffer the result is undefined.\n",
+      "insertText": "readUInt8"
+    },
+    {
+      "label": "readUInt16LE",
+      "kind": 2,
+      "detail": "buf.readUInt16LE(offset[, noAssert])",
+      "documentation": "* `offset` {number} Start position of buffer for reading.\n* `noAssert` {boolean} Skip offset validation. **Default:** `false`\n* Returns: {number}\n\nReads an unsigned 16-bit integer from `buf` buffer starting from\n`offset` position with little endian format.\n\nIf `noAssert` is set and the offset is higher than the size of\nthe buffer the result is undefined.\n",
+      "insertText": "readUInt16LE"
+    }
+  ],
+  "dgram": [
+    {
+      "label": "createSocket",
+      "kind": 2,
+      "detail": "dgram.createSocket(options[, callback])",
+      "documentation": "* `options` {Object}\n  * `type` {string}\n  * `reuseAddr` {boolean}\n* `callback` {Function} (optional)\n\nCreates a new `dgram.Socket` object. The type of the connection\nis specified by `options.type`. Currently only `udp4` is supported.\n\nIf `reuseAddr` is true the `socket.bind()` call reuses the address\neven if this address has been bound by another process.\n\nThe optional 'callback' function is attached to the\n[`'message'`](#event-message) event.\n",
+      "insertText": "createSocket"
+    },
+    {
+      "label": "createSocket",
+      "kind": 2,
+      "detail": "dgram.createSocket(type[, callback])",
+      "documentation": "* `type` {string}\n* `callback` {Function} (optional)\n\nCreates a new `dgram.Socket` object. The type of the connection\nis specified by the `type` argument. Currently only `udp4` is\nsupported.\n\nThe optional 'callback' function is attached to the\n[`'message'`](#event-message) event.\n",
+      "insertText": "createSocket"
+    },
+    {
+      "label": "addMembership",
+      "kind": 2,
+      "detail": "socket.addMembership(multicastAddress[, multicastInterface])",
+      "documentation": "* `multicastAddress` {string}\n* `multicastInterface` {string}\n\nJoins the multicast group specified by `multicastAddress` and\n`multicastInterface`. If `multicastInterface` is undefined the\noperating system will choose one add interface and will add\nmembership to it. To add membership to every available interface,\ncall addMembership multiple times, once per interface.\n\n",
+      "insertText": "addMembership"
+    },
+    {
+      "label": "address",
+      "kind": 2,
+      "detail": "socket.address()",
+      "documentation": "* Returns: {Object}\n\nReturns an object with the properties `address`, `port` and `family`.\n",
+      "insertText": "address"
+    },
+    {
+      "label": "bind",
+      "kind": 2,
+      "detail": "socket.bind([port][, address][, bindListener])",
+      "documentation": "* `port` {number}\n* `address` {string} **Default:** `0.0.0.0`\n* `bindListener` {Function}\n\nAssign the `port` and `address` to an UDP socket. If `port` is\nnot specified the operating system selects a random unused\nport.\n\nThe optional 'bindListener' function is attached to the\n[`'listening'`](#event-listening) event.\n",
+      "insertText": "bind"
+    },
+    {
+      "label": "bind",
+      "kind": 2,
+      "detail": "socket.bind(options[, bindListener])",
+      "documentation": "* `options` {Object}\n  * `port` {number}\n  * `address` {string} **Default:** `0.0.0.0`\n* `bindListener` {Function}\n\nAssign `options.port` and `options.address` to an UDP socket.\nIf `options.port` is not specified the operating system selects\na random unused port.\n\nThe optional 'bindListener' function is attached to the\n[`'listening'`](#event-listening) event.\n",
+      "insertText": "bind"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "socket.close([closeListener])",
+      "documentation": "* `closeListener` {Function}\n\nClose the underlying socket and stop listening for data on it.\n\nThe optional 'closeListener' function is attached to the\n[`'close'`](#event-close) event.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "dropMembership",
+      "kind": 2,
+      "detail": "socket.dropMembership(multicastAddress[, multicastInterface])",
+      "documentation": "* `multicastAddress` {string}\n* `multicastInterface` {string}\n\nLeaves for socket the given multicast group with given `multicastAddress` and `multicastInterface`.\n",
+      "insertText": "dropMembership"
+    },
+    {
+      "label": "setBroadcast",
+      "kind": 2,
+      "detail": "socket.setBroadcast(flag)",
+      "documentation": "* `flag` {boolean}\n\nSets or clears the `SO_BROADCAST` socket option. When `flag` is\ntrue UDP packets may be sent to a local interface's broadcast\naddress.\n",
+      "insertText": "setBroadcast"
+    },
+    {
+      "label": "send",
+      "kind": 2,
+      "detail": "socket.send(msg, [offset, length,] port [, address] [, sendListener])",
+      "documentation": "* `msg` {Buffer|string|array}\n* `offset` {integer} Only valid if `msg` is Buffer.\n* `length` {integer} Only valid if `msg` is Buffer.\n* `port` {integer}\n* `address` {string} **Default:** `127.0.0.1` or `::1`\n* `sendListener` {Function}\n  * `Error` {Object|null}\n    * `code` {string} Currently it is always `\"error\"`.\n    * `errno` {string} Same as `code`.\n    * `syscall` {integer}\n    * `address` {string}\n    * `port` {integer}\n  * `length` {integer} Length of data.\n\nTransmits a message to the destination socket specified by\n`address` and `port` arguments. The `msg` argument contains\nthe data to be sent. It can be a {Buffer}, a {string} converted\nto UTF-8 bytes, or an array of {Buffer} and {string} values.\nIn the latter case the items of the array are concatenated\ninto a single {Buffer} before sending.\n\nIf send operation is successfully completed, `sendListener` will\nbe called with `null` and the length of data. Otherwise an\nError {Object} is passed along with the length of data.\n",
+      "insertText": "send"
+    },
+    {
+      "label": "sendto",
+      "kind": 2,
+      "detail": "socket.sendto(msg, offset, length, port [, address] [, sendListener])",
+      "documentation": "* `msg` {Buffer|string|array}\n* `offset` {integer}\n* `length` {integer}\n* `port` {integer}\n* `address` {string} **Default:** `127.0.0.1` or `::1`\n* `sendListener` {Function}\n\nLegacy function. It is the same as\n[`socket.send`](#socket-send-msg-offset-length-port-address-sendListener)\nexcept `offset` and `length` arguments are mandatory.\n",
+      "insertText": "sendto"
+    },
+    {
+      "label": "setMulticastLoopback",
+      "kind": 2,
+      "detail": "socket.setMulticastLoopback(flag)",
+      "documentation": "* `flag` {boolean}\n\nSets or clears the `IP_MULTICAST_LOOP` socket option. When `flag` is\n`true` multicast packets will also be received on the local interface.\n",
+      "insertText": "setMulticastLoopback"
+    },
+    {
+      "label": "setMulticastTTL",
+      "kind": 2,
+      "detail": "socket.setMulticastTTL(ttl)",
+      "documentation": "* `ttl` {integer} This value must be between 0 and 255.\n\nSets the `IP_MULTICAST_TTL` socket option which pecifies the\nnumber of IP hops that a packet is allowed to travel through,\nspecifically for multicast traffic. Each router or gateway\nthat forwards a packet decrements its TTL. When TTL reaches\nzero the packet is not forwarded anymore.\n\nThe default on most systems is 1 but can vary.\n\n",
+      "insertText": "setMulticastTTL"
+    },
+    {
+      "label": "setTTL",
+      "kind": 2,
+      "detail": "socket.setTTL(ttl)",
+      "documentation": "* `ttl` {integer} This value must be between 1 and 255.\n\nSets the `IP_TTL` socket option which specifies the number of IP\nhops that a packet is allowed to travel through. Each router or\ngateway that forwards a packet decrements its TTL. When TTL reaches\nzero the packet is not forwarded anymore.\n\nThe default on most systems is 64 but can vary.\n",
+      "insertText": "setTTL"
+    }
+  ],
+  "dns": [
+    {
+      "label": "lookup",
+      "kind": 2,
+      "detail": "dns.lookup(hostname[, options], callback)",
+      "documentation": "* `hostname` {string} Hostname to be resolved.\n* `options` {Object|number}\n  * `family` {number} The record family. If specified must be 4. Specifies that IPv4 addresses should be returned.\n  * `hints` {number} One or more supported getaddrinfo flags. Multiple flags may be passed by bitwise `OR`ing their values.\n* `callback` {Function}\n  * `err` {Error|null} If there is no error the value is `null`.\n  * `address` {string} A string representation of an IPv4 address.\n  * `family` {number} 4, denoting the family of `address`.\n\nResolves a hostname (e.g. `iotjs.net`) into the first found A (IPv4) or AAAA (IPv6) record. All `option` properties\nare option. If `option` is a number, then it must be `4`. If `options` is not provided, then IPv4 addresses are\nreturned if found.\n\nOn error, `err` is an `Error` object where `err.code` is the error code returned by the underlying system call.\n\nThe `dns.lookup()` does not necessarily do DNS requests to resolve a hostname. The implementation uses an\noperating system facility to associate names with addresses. Please read the\n[Implementation considerations section](#implementation-considerations) for more system dependent information.\n",
+      "insertText": "lookup"
+    }
+  ],
+  "events": [
+    {
+      "label": "addListener",
+      "kind": 2,
+      "detail": "emitter.addListener(event, listener)",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nIt is an alias for `emitter.on(eventName, listener)`.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
+      "insertText": "addListener"
+    },
+    {
+      "label": "on",
+      "kind": 2,
+      "detail": "emitter.on(event, listener)",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
+      "insertText": "on"
+    },
+    {
+      "label": "emit",
+      "kind": 2,
+      "detail": "emitter.emit(event[, args..])",
+      "documentation": "* `event` {string} The name of the event.\n  * `args` {any}.\n* Returns {boolean}.\n\nSynchronously calls each of the listeners registered for the `event`, in the order they were registered, passing the supplied arguments to each.\n\nReturns true if the event had listeners, false otherwise.\n",
+      "insertText": "emit"
+    },
+    {
+      "label": "once",
+      "kind": 2,
+      "detail": "emitter.once(event, listener)",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nAdds the `listener` as a one time listener for the `event`.\n\nUsing this method, it is possible to register a listener that is called at most once for a particular `event`.\nThe listener will be invoked only once, when the first `event` is emitted.\n",
+      "insertText": "once"
+    },
+    {
+      "label": "removeListener",
+      "kind": 2,
+      "detail": "emitter.removeListener(event, listener)",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nRemoves `listener` from the list of event listeners.\n\nIf you add the same `listener` multiple times, this removes only one instance of them.\n",
+      "insertText": "removeListener"
+    },
+    {
+      "label": "removeAllListeners",
+      "kind": 2,
+      "detail": "emitter.removeAllListeners([event])",
+      "documentation": "* `event` {string} The name of the event.\n* Returns `emitter` {events.EventEmitter}.\n\nRemoves all listeners.\n\nIf `event` was specified, it only removes the listeners for that event.\n",
+      "insertText": "removeAllListeners"
+    }
+  ],
+  "fs": [
+    {
+      "label": "isDirectory",
+      "kind": 2,
+      "detail": "stats.isDirectory()",
+      "documentation": "* Returns: {boolean}\n\nReturns true if stated file is a directory.\n\n",
+      "insertText": "isDirectory"
+    },
+    {
+      "label": "isFile",
+      "kind": 2,
+      "detail": "stats.isFile()",
+      "documentation": "* Returns: {boolean}\n\nReturns true if stated file is a file.\n",
+      "insertText": "isFile"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "fs.close(fd, callback)",
+      "documentation": "* `fd` {integer} File descriptor.\n* `callback` {Function}\n  * `err` {Error|null}\n\nCloses the file of `fd` asynchronously.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "fs.closeSync(fd)",
+      "documentation": "* `fd` {integer} File descriptor.\n\nCloses the file of `fd` synchronously.\n",
+      "insertText": "closeSync"
+    },
+    {
+      "label": "exists",
+      "kind": 2,
+      "detail": "fs.exists(path, callback)",
+      "documentation": "* `path` {string} File path to be checked.\n* `callback` {Function}\n  * `exists` {boolean}\n\nChecks the file specified by `path` exists asynchronously.\n",
+      "insertText": "exists"
+    },
+    {
+      "label": "existsSync",
+      "kind": 2,
+      "detail": "fs.existsSync(path)",
+      "documentation": "* `path` {string} File path to be checked.\n* Returns: {boolean} True if the file exists, otherwise false.\n\nChecks the file specified by `path` exists synchronously.\n\n```js\nvar assert = require('assert');\nvar fs = require('fs');\n\nvar result = fs.existsSync('test.txt');\nassert.equal(result, true);\n```\n",
+      "insertText": "existsSync"
+    },
+    {
+      "label": "fstat",
+      "kind": 2,
+      "detail": "fs.fstat(fd, callback)",
+      "documentation": "* `fd` {integer} File descriptor to be stated.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `stat` {Object} An instance of `fs.Stats`.\n\nGet information about a file what specified by `fd` into `stat` asynchronously.\n",
+      "insertText": "fstat"
+    },
+    {
+      "label": "fstatSync",
+      "kind": 2,
+      "detail": "fs.fstatSync(fd)",
+      "documentation": "* `fd` {integer} - File descriptor to be stated.\n* Returns: {Object} An instance of `fs.Stats`.\n\nGet information about a file what specified by `fd` synchronously.\n",
+      "insertText": "fstatSync"
+    },
+    {
+      "label": "mkdir",
+      "kind": 2,
+      "detail": "fs.mkdir(path[, mode], callback)",
+      "documentation": "* `path` {string} Path of the directory to be created.\n* `mode` {string|number} Permission mode. **Default:** `0777`\n* `callback` {Function}\n  * `err` {Error|null}\n\nCreates the directory specified by `path` asynchronously.\n",
+      "insertText": "mkdir"
+    },
+    {
+      "label": "mkdirSync",
+      "kind": 2,
+      "detail": "fs.mkdirSync(path[, mode])",
+      "documentation": "* `path` {string} Path of the directory to be created.\n* `mode` {string|number} Permission mode. **Default:** `0777`\n\nCreates the directory specified by `path` synchronously.\n",
+      "insertText": "mkdirSync"
+    },
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "fs.open(path, flags[, mode], callback)",
+      "documentation": "* `path` {string} File path to be opened.\n* `flags` {string} Open flags.\n* `mode` {string|number} Permission mode. **Default:** `0666`\n* `callback` {Function}\n  * `err` {Error|null}\n  * `fd` {number}\n\nOpens file asynchronously.\n\n`flags` can be:\n  * `r` Opens file for reading. Throws an exception if the file does not exist.\n  * `rs` or `sr` Opens file for reading in synchronous mode. Throws an exception if the file does not exist.\n  * `r+` Opens file for reading and writing. Throws an exception if the file does not exist.\n  * `rs+` or `sr+` Opens file for reading and writing in synchronous mode. Throws an exception if the file does not exist.\n  * `w` Opens file for writing. The file is overwritten if it exists.\n  * `wx` or `xw` Opens file for writing. Throws an exception if it exists.\n  * `w+` Opens file for reading and writing. The file is overwritten if it exists.\n  * `wx+` or `xw+` Opens file for reading and writing. Throws an exception if it exists.\n  * `a` Opens file for appending. The file is created if it does not exist.\n  * `ax` or `xa` Opens file for appending. Throws an exception if it exists.\n  * `a+` Opens file for reading and appending. The file is created if it does not exist.\n  * `ax+` or `xa+` Opens file for reading and appending. Throws an exception if it exists.\n",
+      "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "fs.openSync(path, flags[, mode])",
+      "documentation": "* `path` {string} File path to be opened.\n* `flags` {string} Open flags.\n* `mode` {string|number} Permission mode. **Default:** `0666`\n* Returns: {number} File descriptor.\n\nOpens file synchronously.\n\nFor available options of the `flags` see [fs.open()](#class-method-fsopenpath-flags-mode-callback).\n",
+      "insertText": "openSync"
+    },
+    {
+      "label": "read",
+      "kind": 2,
+      "detail": "fs.read(fd, buffer, offset, length, position, callback)",
+      "documentation": "* `fd` {integer} File descriptor.\n* `buffer` {Buffer} Buffer that the data will be written to.\n* `offset` {number} Offset of the buffer where to start writing.\n* `length` {number} Number of bytes to read.\n* `position` {number} Specifying where to start read data from the file, if `null` or `undefined`, read from current position.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `bytesRead` {number}\n  * `buffer` {Buffer}\n\nReads data from the file specified by `fd` asynchronously.\n",
+      "insertText": "read"
+    },
+    {
+      "label": "readSync",
+      "kind": 2,
+      "detail": "fs.readSync(fd, buffer, offset, length, position)",
+      "documentation": "* `fd` {integer} File descriptor.\n* `buffer` {Buffer} Buffer that the data will be written to.\n* `offset` {number} Offset of the buffer where to start writing.\n* `length` {number} Number of bytes to read.\n* `position` {number} Specifying where to start read data from the file, if `null` or `undefined`, read from current position.\n* Returns: {number} Number of read bytes.\n\nReads data from the file specified by `fd` synchronously.\n",
+      "insertText": "readSync"
+    },
+    {
+      "label": "readdir",
+      "kind": 2,
+      "detail": "fs.readdir(path, callback)",
+      "documentation": "* `path` {string} Directory path to be checked.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `files` {Object}\n\nReads the contents of the directory specified by `path` asynchronously, `.` and `..` are excluded from `files`.\n",
+      "insertText": "readdir"
+    },
+    {
+      "label": "readdirSync",
+      "kind": 2,
+      "detail": "fs.readdirSync(path)",
+      "documentation": "* `path` {string} Directory path to be checked.\n* Returns: {Object} Array of filenames.\n\nReads the contents of the directory specified by `path` synchronously, `.` and `..` are excluded from filenames.\n",
+      "insertText": "readdirSync"
+    },
+    {
+      "label": "readFile",
+      "kind": 2,
+      "detail": "fs.readFile(path, callback)",
+      "documentation": "* `path` {string} File path to be opened.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `data` {Buffer}\n\nReads entire file asynchronously into `data`.\n",
+      "insertText": "readFile"
+    },
+    {
+      "label": "readFileSync",
+      "kind": 2,
+      "detail": "fs.readFileSync(path)",
+      "documentation": "* `path` {string} File path to be opened.\n* Returns: {Object} Contents of the file.\n\nReads entire file synchronously.\n",
+      "insertText": "readFileSync"
+    },
+    {
+      "label": "rename",
+      "kind": 2,
+      "detail": "fs.rename(oldPath, newPath, callback)",
+      "documentation": "* `oldPath` {string} Old file path.\n* `newPath` {string} New file path.\n* `callback` {Function}\n  * `err` {Error|null}\n\nRenames `oldPath` to `newPath` asynchronously.\n",
+      "insertText": "rename"
+    },
+    {
+      "label": "renameSync",
+      "kind": 2,
+      "detail": "fs.renameSync(oldPath, newPath)",
+      "documentation": "* `oldPath` {string} Old file path.\n* `newPath` {string} New file path.\n\nRenames `oldPath` to `newPath` synchronously.\n",
+      "insertText": "renameSync"
+    },
+    {
+      "label": "rmdir",
+      "kind": 2,
+      "detail": "fs.rmdir(path, callback)",
+      "documentation": "* `path` {string} Directory path to be removed.\n* `callback` {Function}\n  * `err` {Error|null}\n\nRemoves the directory specified by `path` asynchronously.\n",
+      "insertText": "rmdir"
+    },
+    {
+      "label": "rmdirSync",
+      "kind": 2,
+      "detail": "fs.rmdirSync(path)",
+      "documentation": "* `path` {string} Directory path to be removed.\n\nRemoves the directory specified by `path` synchronously.\n\n```js\nvar fs = require('fs');\n\nfs.rmdirSync('testdir');\n```\n\n",
+      "insertText": "rmdirSync"
+    },
+    {
+      "label": "stat",
+      "kind": 2,
+      "detail": "fs.stat(path, callback)",
+      "documentation": "* `path` {string} File path to be stated.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `stat` {Object}\n\nGet information about a file into `stat` asynchronously.\n",
+      "insertText": "stat"
+    },
+    {
+      "label": "statSync",
+      "kind": 2,
+      "detail": "fs.statSync(path)",
+      "documentation": "* `path` {string} File path to be stated.\n* Returns: {Object} An instance of `fs.Stats`.\n\nGet information about a file synchronously.\n",
+      "insertText": "statSync"
+    },
+    {
+      "label": "unlink",
+      "kind": 2,
+      "detail": "fs.unlink(path, callback)",
+      "documentation": "* `path` {string} File path to be removed.\n* `callback` {Function}\n  * `err` {Error|null}\n\nRemoves the file specified by `path` asynchronously.\n",
+      "insertText": "unlink"
+    },
+    {
+      "label": "unlinkSync",
+      "kind": 2,
+      "detail": "fs.unlinkSync(path)",
+      "documentation": "* `path` {string} File path to be removed.\n\nRemoves the file specified by `path` synchronously.\n",
+      "insertText": "unlinkSync"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "fs.write(fd, buffer, offset, length[, position], callback)",
+      "documentation": "* `fd` {integer} File descriptor.\n* `buffer` {Buffer} Buffer that the data will be written from.\n* `offset` {number} Offset of the buffer where from start reading.\n* `length` {number} Number of bytes to write.\n* `position` {number} Specifying where to start write data to the file, if `null` or `undefined`, write at the current position.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `bytesWrite` {integer}\n  * `buffer` {Object}\n\nWrites `buffer` to the file specified by `fd` asynchronously.\n",
+      "insertText": "write"
+    },
+    {
+      "label": "writeSync",
+      "kind": 2,
+      "detail": "fs.writeSync(fd, buffer, offset, length[, position])",
+      "documentation": "* `fd` {integer} File descriptor.\n* `buffer` {Buffer} Buffer that the data will be written from.\n* `offset` {number} Offset of the buffer where from start reading.\n* `length` {number} Number of bytes to write.\n* `position` {number} Specifying where to start write data to the file, if `null` or `undefined`, write at the current position.\n* Returns: {number} Number of bytes written.\n\nWrites buffer to the file specified by `fd` synchronously.\n\n```js\nvar fs = require('fs');\n\nvar file = 'test.txt'\nvar data = new Buffer('IoT.js');\n\nvar fd = fs.openSync(file, 'w');\nvar bytes = fs.writeSync(fd, data, 0, data.length);\n\n//prints: 6\nconsole.log(bytes);\n```\n\n",
+      "insertText": "writeSync"
+    },
+    {
+      "label": "writeFile",
+      "kind": 2,
+      "detail": "fs.writeFile(path, data, callback)",
+      "documentation": "* `path` {string} File path that the `data` will be written.\n* `data` {string|Buffer} String or buffer that contains data.\n* `callback` {Function}\n  * `err` {Error|null}\n\nWrites entire `data` to the file specified by `path` asynchronously.\n",
+      "insertText": "writeFile"
+    },
+    {
+      "label": "writeFileSync",
+      "kind": 2,
+      "detail": "fs.writeFileSync(path, data)",
+      "documentation": "* `path` {string} File path that the `data` will be written.\n* `data` {string|Buffer} String or buffer that contains data.\n\nWrites entire `data` to the file specified by `path` synchronously.\n",
+      "insertText": "writeFileSync"
+    }
+  ],
+  "gpio": [
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "gpio.open(configuration[, callback])",
+      "documentation": "* `configuration` {Object}\n  * `pin` {number} Pin number. Mandatory field.\n  * `direction` {GPIO.DIRECTION} Pin direction. **Default:** `GPIO.DIRECTION.OUT`\n  * `mode` {GPIO.MODE} Pin mode. **Default:** `GPIO.MODE.NONE`\n* `callback` {Function}\n  * `error` {Error|null}\n* Returns: {GPIOPin}\n\nOpens the specified GPIO pin and sets the pin configuration.\n\nThe mode argument is ignored on Linux.\n\nThe optional `callback` function will be called after\nopening is completed. The `error` argument is an\n`Error` object on failure or `null` otherwise.\n",
+      "insertText": "open"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "gpiopin.write(value[, callback])",
+      "documentation": "* `value` {number|boolean}\n* `callback` {Function}\n  * `error` {Error|null}\n\nAsynchronously writes out a boolean `value` to a GPIO pin\n(a number `value` is converted to boolean first).\n\nThe optional `callback` function will be called\nafter the write is completed. The `error` argument\nis an `Error` object on failure or `null` otherwise.\n",
+      "insertText": "write"
+    },
+    {
+      "label": "writeSync",
+      "kind": 2,
+      "detail": "gpiopin.writeSync(value)",
+      "documentation": "* `value` {number|boolean}\n\nWrites out a boolean `value` to a GPIO pin synchronously\n(a number `value` is converted to boolean first).\n",
+      "insertText": "writeSync"
+    },
+    {
+      "label": "read",
+      "kind": 2,
+      "detail": "gpiopin.read([callback])",
+      "documentation": "* `callback` {Function}\n  * `error` {Error|null}\n  * `value` {boolean}\n\nAsynchronously reads a boolean value from a GPIO pin.\n\nThe optional `callback` function will be called\nafter the read is completed. The `error` argument\nis an `Error` object on failure or `null` otherwise.\nThe `value` argument contains the boolean value\nof the pin.\n",
+      "insertText": "read"
+    },
+    {
+      "label": "readSync",
+      "kind": 2,
+      "detail": "gpiopin.readSync()",
+      "documentation": "* Returns: {boolean}\n\nReturns the boolean value of a GPIO pin.\n",
+      "insertText": "readSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "gpiopin.close([callback])",
+      "documentation": "* `callback` {Function}\n  * `error` {Error|null}\n\nAsynchronously closes a GPIO pin.\n\nThe optional `callback` function will be called\nafter the close is completed. The `error` argument\nis an `Error` object on failure or `null` otherwise.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "gpiopin.closeSync()",
+      "documentation": "\nCloses a GPIO pin.\n",
+      "insertText": "closeSync"
+    }
+  ],
+  "http": [
+    {
+      "label": "createServer",
+      "kind": 2,
+      "detail": "http.createServer([requestListener])",
+      "documentation": "* `requestListener` {Function}\n  * request {http.IncomingMessage}\n  * response {http.ServerResponse}\n* Returns: {http.Server}\n\nThe `requestListener` is a function which is automatically added to the `'request'` event.\n",
+      "insertText": "createServer"
+    },
+    {
+      "label": "request",
+      "kind": 2,
+      "detail": "http.request(options[, callback])",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. Defaults to 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. Defaults to 80.\n  * `method` {string} A string specifying the HTTP request method. Defaults to 'GET'.\n  * `path` {string} Request path. Defaults to '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n",
+      "insertText": "request"
+    },
+    {
+      "label": "get",
+      "kind": 2,
+      "detail": "http.get(options[, callback])",
+      "documentation": "* `options` {Object}\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n\nSame as `http.request` except that `http.get` automatically call `req.end()` at the end.\n",
+      "insertText": "get"
+    },
+    {
+      "label": "listen",
+      "kind": 2,
+      "detail": "server.listen(port[, hostname][, backlog][, callback])",
+      "documentation": "* `port` {number}\n* `host` {string}\n* `backlog` {number}\n* `callback` {Function}\n\nWait for new TCP connection with specified port and hostname. If no hostname is provided, server accepts any IP address.\n`backlog` is maximum pending connections. Default backlog length is 511 (not 512).\n`callback` will be called when server has been bound.\n",
+      "insertText": "listen"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "server.close([callback])",
+      "documentation": "* `callback` {Function}\n\nStop accepting new connection to this server. However, the existing connections are preserved. When server is finally closed after all connections are closed, a callback is called.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "server.setTimeout(ms, cb)",
+      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for `'timeout'` event and sets socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provide cb, you should handle the socket's timeout.\n\nDefault timeout for server is 2 minutes.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "response.end([data][, callback])",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nFinishes sending the response.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the response stream is finished.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "getHeader",
+      "kind": 2,
+      "detail": "response.getHeader(name)",
+      "documentation": "* `name` {string}\n\nReturns `name` field of response's header\n",
+      "insertText": "getHeader"
+    },
+    {
+      "label": "removeHeader",
+      "kind": 2,
+      "detail": "response.removeHeader(name)",
+      "documentation": "* `name` {string}\n\nRemoves `name` field from response's header\n",
+      "insertText": "removeHeader"
+    },
+    {
+      "label": "setHeader",
+      "kind": 2,
+      "detail": "response.setHeader(name, value)",
+      "documentation": "* `name` {string}\n* `value` {string}\n\nSets response's header field(`name`) to `value`. If the field exists, it overwrites the existing value.\n",
+      "insertText": "setHeader"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "response.setTimeout(ms, cb)",
+      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "response.write(data[, callback])",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a response body. `callback` will be called when data is flushed.\n",
+      "insertText": "write"
+    },
+    {
+      "label": "writeHead",
+      "kind": 2,
+      "detail": "response.writeHead(statusCode[, statusMessage][, headers])",
+      "documentation": "* `statusCode` {number}\n* `statusMessage` {string}\n* `headers` {Object}\n\nSets response's header. `headers` is a map between field and value in header.\n\n\n## Class: http.ClientRequest\n\nThis object is created internally and returned from http.request(). It represents an in-progress request whose header has already been queued.\n",
+      "insertText": "writeHead"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "request.end([data][, callback])",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nFinishes sending the request.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the request stream is finished.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "request.setTimeout(ms, cb)",
+      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provides cb, you should handle the socket's timeout.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "request.write(data[, callback])",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a request body. `callback` will be called when data is flushed.\n\n\n## Class: http.IncomingMessage\n\nhttp.IncomingMessage inherits `Stream.readable`.\n",
+      "insertText": "write"
+    }
+  ],
+  "https": [
+    {
+      "label": "request",
+      "kind": 2,
+      "detail": "https.request(options[, callback])",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 80.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n",
+      "insertText": "request"
+    },
+    {
+      "label": "get",
+      "kind": 2,
+      "detail": "https.get(options[, callback])",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 80.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n\nSame as `https.request` except that `https.get` automatically call `req.end()` at the end.\n",
+      "insertText": "get"
+    },
+    {
+      "label": "abort",
+      "kind": 2,
+      "detail": "request.abort()",
+      "documentation": "Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.\n\n### request.aborted\nIf the request has been aborted, this contains the time at which the request was aborted in milliseconds since epoch as `Number`.\n",
+      "insertText": "abort"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "request.setTimeout(ms, cb)",
+      "documentation": "* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provides cb, you should handle the socket's timeout.\n\n\n## Class: https.IncomingMessage\n\nThis object is created internally and returned to the callback in https.request(). It represents the response sent by a server to a request.\n\nhttps.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.\n\n### message.headers\nHTTPS header object.\n\n### message.method\nRequest's method as `string`\n\n### message.statusCode\nHTTPS response status code as `number` of 3-digit.\n\n### message.statusMessage\nHTTPS response status message as `string`\n\n### message.url\nRequests URL as `string`\n",
+      "insertText": "setTimeout"
+    }
+  ],
+  "i2c": [
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "i2c.open(configuration[, callback])",
+      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `address` {number} Device address.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `i2cBus` {Object} An instance of I2CBus.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration asynchronously.\n",
+      "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "i2c.openSync(configuration)",
+      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `address` {number} Device address.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration synchronously.\n",
+      "insertText": "openSync"
+    },
+    {
+      "label": "read",
+      "kind": 2,
+      "detail": "i2cbus.read(length[, callback])",
+      "documentation": "* `length` {number} Number of bytes to read.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `res` {Array} Array of bytes.\n\nRead bytes from I2C device asynchronously.\n",
+      "insertText": "read"
+    },
+    {
+      "label": "readSync",
+      "kind": 2,
+      "detail": "i2cbus.readSync(length)",
+      "documentation": "* `length` {number} Number of bytes to read.\n* Returns: {Array} Array of bytes.\n\nRead bytes from I2C device synchronously.\n",
+      "insertText": "readSync"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "i2cbus.write(bytes[, callback])",
+      "documentation": "* `bytes` {Array} Array of bytes to write.\n* `callback` {Function}\n  * `err` {Error|null}\n\nWrite bytes to I2C device asynchronously.\n",
+      "insertText": "write"
+    },
+    {
+      "label": "writeSync",
+      "kind": 2,
+      "detail": "i2cbus.writeSync(bytes)",
+      "documentation": "* `bytes` {Array} Array of bytes to write.\n* `callback` {Function}\n  * `err` {Error|null}\n\nWrite bytes to I2C device synchronously.\n",
+      "insertText": "writeSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "i2cbus.close()",
+      "documentation": "* `callback` {Function}\n  * `err` {Error|null}\n\nClose I2C device asynchronously.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "i2cbus.closeSync()",
+      "documentation": "\nClose I2C device synchronously.\n",
+      "insertText": "closeSync"
+    }
+  ],
+  "module": [
+    {
+      "label": "require",
+      "kind": 2,
+      "detail": "require(id)",
+      "documentation": "* `id` {string} Module name to be loaded.\n\nLoads the module named `id`.\n",
+      "insertText": "require"
+    }
+  ],
+  "net": [
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "net.connect(options[, connectListener])",
+      "documentation": "* `options` {Object} An object which specifies the connection options.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\nCreates a new `net.Socket` and automatically connects with the supplied `options`.\nThe `options` object specifies the following information:\n* `port` {number} Port connect to (required).\n* `host` {string} Host connect to (optional, **Default:** `localhost`).\n* `family` {number} Version of IP stack.\n\nThe `options` are passed to both the `net.Socket` constructor and the `socket.connect` method.\nThe `connectListener` is automatically registered as a `'connect'` event listener.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "net.connect(port[, host][, connectListener])",
+      "documentation": "* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to. **Default:** `localhost`.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\nCreates a new `net.Socket` and automatically connects to the supplied `port` and `host`.\nIf host is omitted, `localhost` will be assumed.\nThe `connectListener` is automatically registered as a `'connect'` event listener.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "createConnection",
+      "kind": 2,
+      "detail": "net.createConnection(options[, connectListener])",
+      "documentation": "* `options` {Object} An object which specifies the connection options.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\nCreates a new `net.Socket` and automatically connects with the supplied `options`.\nThe `options` are passed to both the `net.Socket` constructor and the `socket.connect` method.\nThe `options` object specifies the following information:\n* `port` {number} Port connect to (required).\n* `host` {string} Host connect to (optional, **Default:** `localhost`).\n* `family` {number} Version of IP stack.\n\nThe `connectionListener` is automatically registered as a `'connect'` event listener.\n",
+      "insertText": "createConnection"
+    },
+    {
+      "label": "createConnection",
+      "kind": 2,
+      "detail": "net.createConnection(port[, host][, connectListener])",
+      "documentation": "* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to. **Default:** `localhost`.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\n\nCreates a new `net.Socket` and automatically connects to the supplied `port` and `host`.\nIt is equivalent to `new net.Socket()` followed by `socket.connect()`.\nIf host is omitted, `localhost` will be assumed.\nThe `connectionListener` is automatically registered as a `'connect'` event listener.\n",
+      "insertText": "createConnection"
+    },
+    {
+      "label": "createServer",
+      "kind": 2,
+      "detail": "net.createServer([options][, connectionListener])",
+      "documentation": "* `options` {Object} An object which specifies the connection options **Default:** `{ allowHalfOpen: false }`.\n* `connectListener` {Function} Listener for the `'connection'` event.\n* Returns {net.Server}.\n\nCreates a TCP server according to `options`.\nThe `connectionListener` is automatically registered as a `'connection'` event listener.\nIf `allowHalfOpen` is true, then the socket becomes non-readable, but still writable. You should call the `socket.end()` method explicitly.\n",
+      "insertText": "createServer"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "server.close([closeListener])",
+      "documentation": "* `closeListener` {Function} Listener for the `'close'` event.\n\nStops listening new arriving connection.\nServer socket will be finally closed when all existing connections are closed, then emits `'close'` event.\nThe `closeListener` is registered as a `'close'` event listener.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "listen",
+      "kind": 2,
+      "detail": "server.listen(port[, host][, backlog][, listenListener])",
+      "documentation": "* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to.\n* `backlog` {number} The maximum length of the queue of pending connections. **Default:** `511`.\n* `listenListener` {Function} Listener for the `'listening'` event.\n* Returns: {Object} The self instance of `net.Server`.\n\nBegin accepting connections on the specified port and hostname.\nIf the hostname is omitted, the server will accept connections on any IPv4 address (0.0.0.0).\n",
+      "insertText": "listen"
+    },
+    {
+      "label": "listen",
+      "kind": 2,
+      "detail": "server.listen(options[, listenListener])",
+      "documentation": "* options {Object} An object which specifies the connection options.\n* `listenListener` {Function} Listener for the `'listening'` event.\n\nIt behaves as the `server.listen(port[, host][, backlog][, listenListener])` function above.\n\nThe option object supports the following properties:\n* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to.\n* `backlog` {number} The maximum length of the queue of pending connections. **Default:** `511`.\n",
+      "insertText": "listen"
+    },
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "socket.connect(options[, connectListener])",
+      "documentation": "* `options` {Object} An object which specifies the connection information.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\nCreates a new socket object and automatically connects with the supplied `options`.\n\nThe `options` object specifies following information:\n* `port` {number} Port connect to (required).\n* `host` {string}  Host connect to (optional, **Default:** `localhost`).\n* `family` {number} Version of IP stack.\n\nThe `connectionListener` is automatically registered as a `'connect'` event listener which will be emitted when the connection is established.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "socket.connect(port[, host][, connectListener])",
+      "documentation": "* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to. **Default:** `localhost`.\n* `connectListener` {Function} Listener for the `'connect'` event.\n* Returns {net.Socket}.\n\nCreates a new socket and automatically connects with the supplied `port` and `host`.\n\n`connectionListener` is automatically registered as a `'connect'` event listener which will be emitted when the connection is established.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "destroy",
+      "kind": 2,
+      "detail": "socket.destroy()",
+      "documentation": "\nEnsures that no more I/O activity happens on the socket and destroys the socket as soon as possible.\n",
+      "insertText": "destroy"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "socket.end([data][, callback])",
+      "documentation": "\n* `data` {Buffer|string}\n* `callback` {Function}\n\nHalf-closes the socket. The socket is no longer writable.\nIf `data` is given it is equivalent to `socket.write(data)` followed by `socket.end()`.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "pause",
+      "kind": 2,
+      "detail": "socket.pause()",
+      "documentation": "\nPauses reading data.\n",
+      "insertText": "pause"
+    },
+    {
+      "label": "resume",
+      "kind": 2,
+      "detail": "socket.resume()",
+      "documentation": "\nResumes reading data after a call to `pause()`.\n",
+      "insertText": "resume"
+    },
+    {
+      "label": "setKeepAlive",
+      "kind": 2,
+      "detail": "socket.setKeepAlive([enable][, initialDelay])",
+      "documentation": "\n* `enable` {boolean} **Default:** `false`.\n* `initialDelay {number} **Default:** `0`.\n\nEnables or disables keep-alive functionality.\n",
+      "insertText": "setKeepAlive"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "socket.setTimeout(timeout[, callback])",
+      "documentation": "* `timeout` {number} Timeout number.\n* `callback` {Function} Registered as a `'timeout'` event listener.\n\nSets timeout for the socket.\n\nIf the socket is inactive for `timeout` milliseconds, `'timeout'` event will emit.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "socket.write(data[, callback])",
+      "documentation": "* `data` {Buffer|string} Data to write.\n* `callback` {Function} Executed function (when the data is finally written out).\n\nSends `data` on the socket.\n\nThe optional `callback` function will be called after the given data is flushed through the connection.\n",
+      "insertText": "write"
+    }
+  ],
+  "pwm": [
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "pwm.open(configuration[, callback])",
+      "documentation": "* `configuration` {Object} Configuration object which can have the following properties.\n  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).\n  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.\n  * `period` {number} The period of the PWM signal, in seconds (positive number).\n  * `frequency` {integer} In Hz (positive integer).\n  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.\n* `callback` {Function} Callback function.\n  * `err` {Error|null} The error object or `null` if there were no error.\n* Returns: `<PWMPin>`\n\nOpens PWM pin with the specified configuration.\n\nTo correctly open a PWM pin one must know the correct pin number:\n* On Linux, `pin` is a number which is `0` or `1`.\n* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.\n  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)\n\n",
+      "insertText": "open"
+    },
+    {
+      "label": "setPeriod",
+      "kind": 2,
+      "detail": "pwmpin.setPeriod(period[, callback])",
+      "documentation": "* `period` {number} The period of the PWM signal, in seconds (positive number).\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setPeriod` method allows the configuration of the period of the PWM signal in seconds.\nThe `period` argument must specified and it should be a positive number.\n\nConfiguration is done asynchronously and the `callback` method is invoked after the\nperiod is configured to the new value or if an error occured.\n",
+      "insertText": "setPeriod"
+    },
+    {
+      "label": "setPeriodSync",
+      "kind": 2,
+      "detail": "pwmpin.setPeriodSync(period)",
+      "documentation": "* `period` {number} The period of the PWM signal, in seconds (positive number).\n\nThe `setPeriodSync` method allows the configuration of the period of the PWM signal in seconds.\nThe `period` argument must specified and it should be a positive number.\n\nConfiguration is done synchronously and will block till the period is configured.\n",
+      "insertText": "setPeriodSync"
+    },
+    {
+      "label": "setFrequency",
+      "kind": 2,
+      "detail": "pwmpin.setFrequency(frequency[, callback])",
+      "documentation": "* `frequency` {integer} In Hz (positive integer).\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setFequency` method congifures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done asynchronously and the `callback` method is invoked after the\nfrequency is configured to the new value or if an error occured.\n",
+      "insertText": "setFrequency"
+    },
+    {
+      "label": "setFrequencySync",
+      "kind": 2,
+      "detail": "pwmpin.setFrequencySync(frequency)",
+      "documentation": "* `frequency` {integer} In Hz (positive integer).\n\nThe `setFequencySync` method congifures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done synchronously and will block till the frequency is configured.\n",
+      "insertText": "setFrequencySync"
+    },
+    {
+      "label": "setDutyCycle",
+      "kind": 2,
+      "detail": "pwmpin.setDutyCycle(dutyCycle[, callback])",
+      "documentation": "* `dutyCycle` {number} Must be within the `0.0` and `1.0` range.\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setDutyCycle` method allows the configuration of the duty cycle of the PWM signal.\nThe duty cycle is the ratio of the pulse width in one period.\n\nConfiguration is done asynchronously and the `callback` method is invoked after the\nduty cycle is configured to the new value or if an error occured.\n",
+      "insertText": "setDutyCycle"
+    },
+    {
+      "label": "setDutyCycleSync",
+      "kind": 2,
+      "detail": "pwmpin.setDutyCycleSync(dutyCycle)",
+      "documentation": "* `dutyCycle` {number} Must be within the `0.0` and `1.0` range.\n\nThe `setDutyCycleSync` method allows the configuration of the duty cycle of the PWM signal.\nThe duty cycle is the ratio of the pulse width in one period.\n\nConfiguration is done synchronously and will block till the duty cycle is configured.\n",
+      "insertText": "setDutyCycleSync"
+    },
+    {
+      "label": "setEnable",
+      "kind": 2,
+      "detail": "pwmpin.setEnable(enable[, callback])",
+      "documentation": "* `enable` {boolean}\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setEnable` method can turn on/off the generation of the PWM signal.\nIf the `enable` argument is `true` then the PWN signal generation is turned on.\nOtherwise the signal generation is turned off.\n\nAfter enabling/disabling the signal generation the `callback` is invoked.\n",
+      "insertText": "setEnable"
+    },
+    {
+      "label": "setEnableSync",
+      "kind": 2,
+      "detail": "pwmpin.setEnableSync(enable)",
+      "documentation": "* `enable` {boolean}\n\nThe `setEnableSync` method can turn on/off the generation of the PWM signal.\nIf the `enable` argument is `true` then the PWN signal generation is turned on.\nOtherwise the signal generation is turned off.\n",
+      "insertText": "setEnableSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "pwmpin.close([callback])",
+      "documentation": "* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `close` method closes the PWM pin asynchronously.\n\nThe `callback` method will be invoked after the PWM device is released.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "pwmpin.closeSync()",
+      "documentation": "\nThe `closeSync` method closes the PWM pin synchronously.\n",
+      "insertText": "closeSync"
+    }
+  ],
+  "process": [
+    {
+      "label": "chdir",
+      "kind": 2,
+      "detail": "process.chdir(path)",
+      "documentation": "* `path` {string} The path to change working directory to.\n\nThe `chdir` method changes the current working directory of the IoT.js process or\nthrows an exception if the operation fails (for instance the `path` specified does not exist).\n",
+      "insertText": "chdir"
+    },
+    {
+      "label": "cwd",
+      "kind": 2,
+      "detail": "process.cwd()",
+      "documentation": "* Returns: {string}\n\nThe `cwd()` call returns the current working directory of the IoT.js process.\n",
+      "insertText": "cwd"
+    },
+    {
+      "label": "exit",
+      "kind": 2,
+      "detail": "process.exit([code])",
+      "documentation": "* `code` {integer} The exit code. **Default:** `0`\n\nThe `exit()` method instructs the IoT.js to terminate the process synchronously with an exit status of `code`.\nIf `code` is not specified, exit uses the `process.exitCode` value which defaults to `0`.\nIoT.js will not exit till all `'exit'` event listeners are called.\n\nThe `process.exit()` method call will force the process to exit as quickly as possible,\nignoring if there is any asynchronous operations still pending.\n\nIn most situations, it is not necessary to explcitly call `process.exit()`. The IoT.js will exit on its own\nif there is no additional work pending in the event loop. The `process.exitCode` property can be set\nto exit code when the process exits gracefully.\n\nIf it is necessary to terminate the IoT.js process due to an error condition, throwing an\nuncaught error and allowing the process to terminate accordingly is advised instead of calling `process.exit()`.\n",
+      "insertText": "exit"
+    },
+    {
+      "label": "nextTick",
+      "kind": 2,
+      "detail": "process.nextTick(callback, [...args])",
+      "documentation": "* `callback` {Function}\n* `...args` {any} Additional arguments to pass when invoking the callback\n\nThe `nextTick` method adds the `callback` method to the \"next tick queue\".\nOnce the current turn of the event loop is completed, all callbacks currently in the next tick queue will be called.\n\nThis is not a simple alias to `setTimeout` call. It runs before any additional I/O events.\n",
+      "insertText": "nextTick"
+    }
+  ],
+  "spi": [
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "spi.open(configuration[, callback])",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} The specified path for `spidev`. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.\n  * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.\n  * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.\n  * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.\n  * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.\n  * `loopback` {boolean} Using loopback. **Default:** `false`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n* Returns: {SPIBus}.\n\nOpens an SPI device with the specified configuration.\n",
+      "insertText": "open"
+    },
+    {
+      "label": "transfer",
+      "kind": 2,
+      "detail": "spibus.transfer(txBuffer, rxBuffer[, callback])",
+      "documentation": "* `txBuffer` {Array|Buffer}.\n* `rxBuffer` {Array|Buffer}.\n* `callback` {Function}.\n  * `err` {Error|null}.\n\nWrites and reads data from the SPI device asynchronously.\nThe `txBuffer` and `rxBuffer` must have equal length.\n",
+      "insertText": "transfer"
+    },
+    {
+      "label": "transferSync",
+      "kind": 2,
+      "detail": "spibus.transferSync(txBuffer, rxBuffer)",
+      "documentation": "* `txBuffer` {Array|Buffer}.\n* `rxBuffer` {Array|Buffer}.\n\nWrites and reads data from the SPI device synchronously.\nThe `txBuffer` and `rxBuffer` must have equal length.\n",
+      "insertText": "transferSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "spibus.close([callback])",
+      "documentation": "* `callback` {Function}.\n  * `err` {Error|null}.\n\nCloses the SPI device asynchronously.\n\nThe `callback` function will be called after the SPI device is closed.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "spibus.closeSync()",
+      "documentation": "\nCloses the SPI device synchronously.\n",
+      "insertText": "closeSync"
+    }
+  ],
+  "stream": [
+    {
+      "label": "isPaused",
+      "kind": 2,
+      "detail": "readable.isPaused()",
+      "documentation": "* Returns: {boolean}\n\nReturns `true` if the [`Readable`](#class-streamreadable)\nstream is in paused mode. Otherwise the stream is in\nflowing mode. By default the stream starts in paused mode.\n",
+      "insertText": "isPaused"
+    },
+    {
+      "label": "pause",
+      "kind": 2,
+      "detail": "readable.pause()",
+      "documentation": "* Returns: {Readable}\n\nStops emitting [`'data'`](#event-data) events if the\nstream is in flowing mode and sets paused mode. No\neffect otherwise.\n",
+      "insertText": "pause"
+    },
+    {
+      "label": "read",
+      "kind": 2,
+      "detail": "readable.read([size])",
+      "documentation": "* `size` {number} Specify how much data will be read.\n* Returns: {Buffer|null}\n\nThe `readable.read()` method pulls some data out of the\ninternal buffer and returns it. If no data is available\n`null` is returned instead.\n\nNote: currently all data must be read.\n",
+      "insertText": "read"
+    },
+    {
+      "label": "resume",
+      "kind": 2,
+      "detail": "readable.resume()",
+      "documentation": "* Returns: {Readable}\n\nStarts emitting [`'data'`](#events-data) events if the\nstream is in paused mode and sets flowing mode. No effect\notherwise.\n",
+      "insertText": "resume"
+    },
+    {
+      "label": "push",
+      "kind": 2,
+      "detail": "readable.push(chunk)",
+      "documentation": "* `chunk` {Buffer|string}\n\n**This method is only for implementing a new\n[`Readable`](#class-streamreadable) stream type.**\n\nPush a chunk of data to the underlying `Buffer` of\nthis stream. The data can be read by using\neither [`readable.read()`](#readablereadsize) method\nor [`'data'`](#event-data) event of this stream.\n",
+      "insertText": "push"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "writable.end([chunk[, callback]])",
+      "documentation": "* `chunk` {Buffer|string} Final data to write.\n* `callback` {Function}\n\nCalling this function signals that no more data will\nbe written to the Writable. The optional `chunk`\nargument allows writing a final chunk of data.\nIf `chunk` is `null` no data is written.\n\nThe optional `callback` function is attached\nas a listener for the ['finish'](#event-finish) event.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "writable.write(chunk[, callback])",
+      "documentation": "* `chunk` {Buffer|string} Data to write.\n* `callback` {Function} Called when this chunk of data is flushed.\n* Returns: {boolean}\n\nConverts `chunk` into a sequence of bytes and writes this data\nto the stream. An optional `callback` function is called when\nthe data is flushed.\n\nThe returned value is `true` if writing can be continued\nright after calling this method. Otherwise the returned\nvalue is `false` and no data should be written until the\n[`'drain'`](#event-drain) event is received.\n",
+      "insertText": "write"
+    }
+  ],
+  "timers": [
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "setTimeout(callback, delay[, args..])",
+      "documentation": "\n* `callback` {Function} The function to call when the timer elapses.\n  * `...args` {any}\n* `delay` {number} The number of milliseconds to wait before calling the `callback`.\n* `...args` {any} - Optional arguments to pass when the `callback` is called.\n* Returns: {Timeout}\n\nSchedules execution of a one-time `callback` after `delay` milliseconds. Returns a `Timeout` for use with `clearTimeout()`. If `callback` is not a function, a `TypeError` will be thrown.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "clearTimeout",
+      "kind": 2,
+      "detail": "clearTimeout(timeout)",
+      "documentation": "\n* `timeout` {Timeout} A Timeout object returned by `setTimeout()`.\n\nCancels a `Timeout` object created by `setTimeout()`.\n",
+      "insertText": "clearTimeout"
+    },
+    {
+      "label": "setInterval",
+      "kind": 2,
+      "detail": "setInterval(callback, delay[, args..])",
+      "documentation": "* `callback` {Function} The function to call when the timer elapses.\n  * `...args` {any}\n* `delay` {number} The number of milliseconds to wait before calling the `callback`.\n* `...args` {any} - Optional arguments to pass when the `callback` is called.\n* Returns: {Timeout}\n\nSchedules repeated execution of `callback` every `delay` milliseconds. Returns a `Timeout` object for use with `clearInterval()`. If `callback` is not a function, a `TypeError` will be thrown.\n",
+      "insertText": "setInterval"
+    },
+    {
+      "label": "clearInterval",
+      "kind": 2,
+      "detail": "clearInterval(timeout)",
+      "documentation": "\n* `timeout` {Timeout} A Timeout object as returned by `setInterval()`.\n\nCancels a `Timeout` object created by `setInterval()`.\n",
+      "insertText": "clearInterval"
+    },
+    {
+      "label": "ref",
+      "kind": 2,
+      "detail": "timeout.ref()",
+      "documentation": "\nWhen called, requests that the IoT.js event loop should not exit as long as the `Timeout` is active.\n",
+      "insertText": "ref"
+    }
+  ],
+  "uart": [
+    {
+      "label": "open",
+      "kind": 2,
+      "detail": "uart.open(configuration[, callback])",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration.\n  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.\n  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n* Returns: {UARTPort}.\n\nOpens an UARTPort object with the specified configuration.\n\nThe `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].\n\nThe `dataBits` must be equal to one of these values: [5, 6, 7, 8].\n\nOn NuttX, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.\n\nYou can read more information about the usage of the UART on stm32f4-discovery board: [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart).\n",
+      "insertText": "open"
+    },
+    {
+      "label": "",
+      "kind": 2,
+      "detail": "uartport.write(data[, callback]).",
+      "documentation": "* `data` {string}.\n* `callback` {Function}.\n  * `err` {Error|null}.\n\nWrites the given `data` to the UART device asynchronously.\n",
+      "insertText": ""
+    },
+    {
+      "label": "writeSync",
+      "kind": 2,
+      "detail": "uartport.writeSync(data)",
+      "documentation": "* `data` {string}.\n\nWrites the given `data` to the UART device synchronously.\n",
+      "insertText": "writeSync"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "uartport.close([callback])",
+      "documentation": "* `callback` {Function}.\n  * `err` {Error|null)}.\n\nCloses the UART device asynchronously.\n\nOn NuttX/STM32F4Discovery, Uart.close() blocks after close().\nIt seems that poll() does not work properly on NuttX for some cases.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "closeSync",
+      "kind": 2,
+      "detail": "uartport.closeSync()",
+      "documentation": "\nCloses the UART device synchronously.\n\nOn NuttX/STM32F4Discovery, Uart.close() blocks after close().\nIt seems that poll() does not work properly on NuttX for some cases.\n",
+      "insertText": "closeSync"
+    }
+  ]
+}

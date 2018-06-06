@@ -20,6 +20,23 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// FIX ME: Change this require to a more consistent solution.
+// tslint:disable-next-line:no-var-requires
+const iotjs = require('./IotjsFunctions.json');
+
+const defaultModules = [{
+  link: 'process',
+  mod: 'process',
+}, {
+  link: 'emitter',
+  mod: 'events',
+}, {
+  link: 'timers',
+  mod: 'timers',
+}];
+
+const JS_MODE: vscode.DocumentFilter = { language: 'javascript', scheme: 'file' };
+
 const initialConfigurations = [{
   name: 'Attach',
   type: 'iotjs',
@@ -58,7 +75,6 @@ const getListOfFiles = (): string[] => {
   let wsFiles: string[] = [];
 
   vscode.workspace.workspaceFolders.map(folder => folder.uri.fsPath).forEach(entry => {
-    console.log(walkSync(entry));
     wsFiles = [...wsFiles, ...walkSync(entry)];
   });
 
@@ -100,10 +116,67 @@ const processCustomEvent = async (e: vscode.DebugSessionCustomEvent): Promise<an
   }
 };
 
+const lookForModules = (source: string) => {
+  const rm = /^(var|let|const)?\s*([a-zA-Z0-9$_]+)\s*=[\s|\n]*require\s*\(\s*['"]([a-zA-Z0-9$_]+)['"]\s*\);?$/;
+  return source.split('\n').filter(line => rm.test(line)).map(m => {
+    const match = rm.exec(m);
+
+    return {
+      link: match[2],
+      mod: match[3]
+    };
+  });
+};
+
+const createItems = (document: vscode.TextDocument, position: vscode.Position): Array<vscode.CompletionItem> => {
+  const rm = /([a-zA-Z0-9 =]+)\.$/;
+  const items: vscode.CompletionItem[] = [];
+  const modules = Object.keys(iotjs);
+  const textUntilPos = document.getText(document.getWordRangeAtPosition(position));
+  const availableModules = defaultModules.concat(lookForModules(textUntilPos));
+  const might = (document.lineAt(position.line).text).split(/\s/g).pop().replace(/\./g, '');
+  const matchKey = Object.keys(availableModules).find(key => availableModules[key].link === might);
+
+  if (document.lineAt(position.line).text.match(rm)) {
+    modules.forEach(mod => {
+      if (document.lineAt(position.line).text.includes(availableModules[matchKey].link) &&
+      availableModules[matchKey].mod === mod) {
+        for (let i in iotjs[mod]) {
+          items.push(new vscode.CompletionItem(iotjs[mod][i].label, 2));
+          items[i].detail = iotjs[mod][i].detail;
+          items[i].insertText = iotjs[mod][i].insertText;
+          items[i].documentation = iotjs[mod][i].documentation;
+        }
+      }
+    });
+  }
+  return items;
+};
+
+const createModules = (document: vscode.TextDocument, position: vscode.Position): Array<vscode.CompletionItem> => {
+  const rm = /^(var|let|const)?\s*([a-zA-Z0-9$_]+)\s*=[\s|\n]*require\s*\(\s*['"]/;
+  const modules = Object.keys(iotjs);
+
+  if (document.lineAt(position.line).text.match(rm)) {
+    return modules.map(key => new vscode.CompletionItem(key, 2));
+  }
+  return [];
+};
+
 export const activate = (context: vscode.ExtensionContext) => {
   context.subscriptions.push(
     vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
-    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => processCustomEvent(e))
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => processCustomEvent(e)),
+    vscode.languages.registerCompletionItemProvider(JS_MODE, {
+      provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+        return createModules(document, position);
+      }
+    }),
+    vscode.languages.registerCompletionItemProvider(JS_MODE, {
+      provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+        return createItems(document, position);
+      }
+    }, '.')
   );
 };
 
