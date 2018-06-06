@@ -142,7 +142,7 @@ class IotjsDebugSession extends DebugSession {
         this.sendResponse(response);
       })
       .catch(error => {
-        this.log(error, LOG_LEVEL.ERROR);
+        this.log(error.message, LOG_LEVEL.ERROR);
         this.sendErrorResponse(response, error);
       })
       .then(() => {
@@ -229,7 +229,7 @@ class IotjsDebugSession extends DebugSession {
           await this._protocolhandler.updateBreakpoint(jerryBreakpoint, true);
           return <TemporaryBreakpoint>{verified: true, line: breakpoint.line};
         } catch (error) {
-          this.log(error, LOG_LEVEL.ERROR);
+          this.log(error.message, LOG_LEVEL.ERROR);
           return <TemporaryBreakpoint>{verified: false, line: breakpoint.line, message: (<Error>error).message};
         }
       }));
@@ -251,7 +251,7 @@ class IotjsDebugSession extends DebugSession {
 
       response.body = { breakpoints: [...persistingBreakpoints, ...newBreakpoints] };
     } catch (error) {
-      this.log(error, LOG_LEVEL.ERROR);
+      this.log(error.message, LOG_LEVEL.ERROR);
       this.sendErrorResponse(response, <Error>error);
       return;
     }
@@ -299,7 +299,7 @@ class IotjsDebugSession extends DebugSession {
 
       this.sendResponse(response);
     } catch (error) {
-      this.log(error);
+      this.log(error.message, LOG_LEVEL.ERROR);
       this.sendErrorResponse(response, 0, (<Error>error).message);
     }
   }
@@ -315,7 +315,7 @@ class IotjsDebugSession extends DebugSession {
             this.sendResponse(response);
           })
           .catch(error => {
-            this.log(error, LOG_LEVEL.ERROR);
+            this.log(error.message, LOG_LEVEL.ERROR);
             this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
             this.sendErrorResponse(response, <Error>error, ErrorDestination.User);
           });
