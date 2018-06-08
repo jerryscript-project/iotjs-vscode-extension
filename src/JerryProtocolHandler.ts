@@ -266,7 +266,7 @@ export class JerryDebugProtocolHandler {
     return '';
   }
 
-  public decodeMessage(format: string, message: Uint8Array, offset: number): any {
+  private decodeMessage(format: string, message: Uint8Array, offset: number): any {
     return decodeMessage(this.byteConfig, format, message, offset);
   }
 
@@ -336,7 +336,7 @@ export class JerryDebugProtocolHandler {
     this.newFunctions = {};
   }
 
-  public onParseFunction(data: Uint8Array): void {
+  private onParseFunction(data: Uint8Array): void {
     this.logPacket('Parse Function');
     const position = this.decodeMessage('II', data, 1);
     this.stack.push({
@@ -815,7 +815,7 @@ export class JerryDebugProtocolHandler {
     return this.sendSimpleRequest(encodeMessage(this.byteConfig, 'B', [code]));
   }
 
-  public onWaitForSource(): void {
+  private onWaitForSource(): void {
     this.waitForSourceEnabled = true;
     if (this.delegate.onWaitForSource) {
       this.delegate.onWaitForSource();
