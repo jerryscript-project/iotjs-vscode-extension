@@ -22,7 +22,8 @@
     - Disconnect command
 
   - Available features:
-    - Set/Remove breakpoint
+    - Set/Remove breakpoints
+    - Set/Remove function breakpoints
     - Call stack display
     - Watch (evaluate expression)
     - Handle source receive from the engine
@@ -54,6 +55,21 @@ You have to open (or create a new) project folder where you have to define a `la
   ]
 }
 ```
+
+These configuration options are required. Manifest:
+- `name`: The name which will be visible in the debug view
+- `type`: This must be `iotjs` otherwise the debug session wont start
+- `request`: Type of the session start, only the `attach` available for now
+- `address`: IP address on which the server listening. Default is `localhost`
+- `port`: Debug port to attach to. Default is `5001`
+- `localRoot`: The local source root directoy, most cases this is the `${workspaceRoot}`
+- `stopOnEntry`: Autmoatically stop the program after launch, the IoT.js will stop on the first breakpoint for now, no matter that is enabled or not.
+- `debugLog`: The type of the debug log, you can choose from 0 to 5:
+    - 0: none
+    - 1: Error (show errors only)
+    - 2: Debug Session related (requests and their responses)
+    - 3: Debug Protocol related (communication between the engine and the client)
+    - 4: Verbose (each log type included)
 
 Now you can connect to a running engine.
 If you are using IoT.js you have to do the following:
@@ -108,7 +124,22 @@ $ ./build/bin/jerry --start-debug-server --debugger-wait-source
 ```
 
 After the engine is running you can start the debug session inside the extension host by pressing the `F5` key or click on the green triangle in the debug panel.
-If the client (VSCode extension) is connected then you have to see that file which is running inside the engine in the vscode editor and you have to see where the execution is stopped. Now you can use the VSCode debug action bar to control the debug session.
+If the client (VSCode extension) is connected then you have to see that file which is running inside the engine or if you started the engine in waiting mode you will get a prompt window where you can select that file what you want to running and then you can see where the execution is stopped. Now you can use the VSCode debug action bar to control the debug session.
+
+***Note:*** If you using the development version of this extension, you have to run the following commands for the first time in the extension directory:
+```bash
+# Install the node modules
+$ npm install
+
+# Compile the extension into the out folder
+$ npm run compile
+```
+If you want to use the development extension just like any other extension in your VSCode then copy the project folder into the VSCode extensions folder:
+```bash
+# Assume that you are in the extension root folder
+# After this just reload the VSCode and the extension will be "installed"
+$ cp . ~/.vscode/extensions/ -r
+```
 
 # License
 IoT.js VSCode extension is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
