@@ -2,7 +2,7 @@
   "name": "iotjs-vscode-extension",
   "displayName": "IoT.js",
   "description": "IoT.js Debugging, IntelliSense for Visual Studio Code",
-  "version": "0.0.1",
+  "version": "0.7.0",
   "publisher": "Samsung",
   "author": {
     "name": "Samsung Electronics Co., Ltd."
@@ -15,17 +15,33 @@
   "bugs": {
     "url": "https://github.com/Samsung/iotjs-vscode-extension/issues"
   },
+  "qna": "marketplace",
+  "markdown": "github",
+  "badges": [
+    {
+      "url": "https://travis-ci.org/Samsung/iotjs-vscode-extension.svg?branch=master",
+      "href": "https://travis-ci.org/Samsung/iotjs-vscode-extension",
+      "description": "Continuous integration (Travis)"
+    },
+    {
+      "url": "https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat",
+      "href": "https://github.com/Samsung/iotjs-vscode-extension/blob/master/LICENSE",
+      "description": "Apache-2.0 LICENSE"
+    }
+  ],
   "license": "Apache-2.0",
   "private": false,
   "keywords": [
     "iotjs",
-    "jerry",
     "jerryscript",
     "debug",
     "debugger",
     "javascript",
     "js"
   ],
+  "galleryBanner": {
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.23.0",
     "node": "^8.11.1"

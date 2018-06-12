@@ -1,6 +1,8 @@
 # IoT.js debug and language extension for VSCode.
 
+
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
+[![Build Status](https://travis-ci.org/Samsung/iotjs-vscode-extension.svg?branch=master)](https://travis-ci.org/Samsung/iotjs-vscode-extension)
 
 - [Introduction](#introduction)
 - [Features](#features)
@@ -26,8 +28,14 @@
     - Set/Remove function breakpoints
     - Call stack display
     - Watch (evaluate expression)
+    - Exception hint
     - Handle source receive from the engine
     - Sending source code from the vscode to the engine
+
+- Language support
+  - Work in progress:
+    - Require module name completer
+    - Module's function completer
 
 # Requirements
 - The latest Vscode which is available [here](https://code.visualstudio.com/Download).
