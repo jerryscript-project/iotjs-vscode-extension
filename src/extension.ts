@@ -163,6 +163,25 @@ const createModules = (document: vscode.TextDocument, position: vscode.Position)
   return [];
 };
 
+const createHover = (document: vscode.TextDocument, position: vscode.Position): vscode.Hover => {
+  const hoverText = document.getText(document.getWordRangeAtPosition(position));
+  const rm = new RegExp(`([a-zA-Z0-9$_ ]+)\\.${hoverText}([a-zA-Z0-9$_ ]*)`);
+  const match = rm.exec(document.lineAt(position.line).text);
+  const modules = Object.keys(iotjs);
+  let hoverContent: vscode.MarkdownString[] = [];
+  const availableModules = defaultModules.concat(lookForModules(document.getText()));
+  const hoverModule = availableModules.find(mod => mod.link === match[1]).mod;
+
+  modules.forEach(mod => {
+    for (let i in iotjs[mod]) {
+      if (hoverText === iotjs[mod][i].insertText && hoverModule === mod) {
+        hoverContent.push(iotjs[mod][i].documentation);
+      }
+    }
+  });
+  return new vscode.Hover(hoverContent);
+};
+
 export const activate = (context: vscode.ExtensionContext) => {
   context.subscriptions.push(
     vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
@@ -176,7 +195,12 @@ export const activate = (context: vscode.ExtensionContext) => {
       provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
         return createItems(document, position);
       }
-    }, '.')
+    }, '.'),
+    vscode.languages.registerHoverProvider(JS_MODE, {
+      provideHover(document: vscode.TextDocument, position: vscode.Position) {
+        return createHover(document, position);
+      }
+    } )
   );
 };
 
