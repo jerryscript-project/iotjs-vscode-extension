@@ -2,7 +2,7 @@
   "name": "iotjs-vscode-extension",
   "displayName": "IoT.js",
   "description": "IoT.js Debugging, IntelliSense for Visual Studio Code",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "publisher": "Samsung",
   "author": {
     "name": "Samsung Electronics Co., Ltd."
@@ -40,7 +40,7 @@
     "js"
   ],
   "galleryBanner": {
-    "theme": "dark"
+    "theme": "light"
   },
   "engines": {
     "vscode": "^1.23.0",
