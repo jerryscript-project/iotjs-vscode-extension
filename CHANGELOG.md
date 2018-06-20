@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.8.0
+- Added features:
+  - Completion Provider for module names and functions
+
 ## Version 0.7.0
 - Added support for debugging:
   - Control commands:
