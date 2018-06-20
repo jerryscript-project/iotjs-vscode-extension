@@ -36,7 +36,6 @@
   - Available features:
     - Require module name completer
     - Module's function completer
-  - Work in progress:
     - Hover information provider for IoT.js specific module functions
 
 
