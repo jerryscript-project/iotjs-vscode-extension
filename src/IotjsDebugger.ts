@@ -24,7 +24,9 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import * as Fs from 'fs';
 import * as Path from 'path';
 import * as Util from 'util';
-import { IAttachRequestArguments, SourceSendingOptions, TemporaryBreakpoint } from './IotjsDebuggerInterfaces';
+import * as Cp from 'child_process';
+import * as NodeSSH from 'node-ssh';
+import { IAttachRequestArguments, ILaunchRequestArguments, SourceSendingOptions, TemporaryBreakpoint } from './IotjsDebuggerInterfaces';
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
@@ -39,7 +41,9 @@ class IotjsDebugSession extends DebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   private static THREAD_ID = 1;
 
-  private _args: IAttachRequestArguments;
+  private _attachArgs: IAttachRequestArguments;
+  private _launchArgs: ILaunchRequestArguments;
+  private _iotjsProcess: Cp.ChildProcess;
   private _debugLog: number = 0;
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
@@ -109,13 +113,84 @@ class IotjsDebugSession extends DebugSession {
       return;
     }
 
-    this._args = args;
+    this._attachArgs = args;
     if (args.debugLog in LOG_LEVEL) {
       this._debugLog = args.debugLog;
     } else {
       this.sendErrorResponse(response, new Error('No log level given'));
     }
 
+    this.connectToDebugServer(response, args);
+  }
+
+  protected launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
+
+    if (!args.address || args.address === '') {
+      this.sendErrorResponse(response, new Error('Must specify an address'));
+      return;
+    }
+    if (!args.port || args.port <= 0 || args.port > 35535) {
+      this.sendErrorResponse(response, new Error('Must specify a valid port'));
+      return;
+    }
+    if (!args.localRoot || args.localRoot === '') {
+      this.sendErrorResponse(response, new Error('Must specify a localRoot'));
+      return;
+    }
+
+    this._launchArgs = args;
+    if (args.debugLog in LOG_LEVEL) {
+      this._debugLog = args.debugLog;
+    } else {
+      this.sendErrorResponse(response, new Error('No log level given'));
+    }
+
+    const launchScript = () => {
+      const programArgs = args.args || [];
+      const cwd = args.localRoot || process.cwd();
+      const env = args.env || process.env;
+      let ssh = new NodeSSH();
+
+      if (args.address === 'localhost') {
+        const localProcess = Cp.spawn(args.program, [...programArgs], {cwd, env});
+        localProcess.stdout.on('data', (data: Buffer) => this.sendEvent(new OutputEvent(data + '', 'stdout')));
+        localProcess.stderr.on('data', (data: Buffer) => this.sendEvent(new OutputEvent(data + '', 'stderr')));
+        localProcess.on('exit', () => this.sendEvent(new TerminatedEvent ()));
+        localProcess.on('error', (error: Error) => this.sendEvent(new OutputEvent(error.message + '\n')));
+        this._iotjsProcess = localProcess;
+      } else {
+        ssh.connect({
+          host: args.address,
+          username: 'root',
+          privateKey: `${process.env.HOME}/.ssh/id_rsa`
+        })
+        .then(() => {
+          ssh.execCommand(`${args.program} ${programArgs.join(' ')}`, ).then((result) => {
+            this.log(result.stdout);
+            this.log(result.stderr);
+          });
+        });
+        if (args.tizenStudioPath && args.IoTjsPath && args.localRoot) {
+          const appInstallPath = Path.join(__dirname, './InstallTizenApp.sh');
+          const tizenAppInstall = Cp.spawn(appInstallPath, [args.tizenStudioPath,
+                                                            args.localRoot,
+                                                            args.address]);
+          tizenAppInstall.stdout.on('data', InstallLog => {
+            this.log(InstallLog.toString(), LOG_LEVEL.VERBOSE);
+          });
+        }
+      }
+    };
+    if (args.program) {
+      launchScript();
+    }
+    setTimeout(() => {
+      this.connectToDebugServer(response, args);
+    }, 500);
+  }
+
+  private connectToDebugServer(response: DebugProtocol.LaunchResponse | DebugProtocol.AttachResponse,
+                               args: ILaunchRequestArguments | IAttachRequestArguments): void {
     const protocolDelegate = <JerryDebugProtocolDelegate>{
       onBreakpointHit: (ref: JerryMessageBreakpointHit, type: string) => this.onBreakpointHit(ref, type),
       onExceptionHit: (data: JerryMessageExceptionHit) => this.onExceptionHit(data),
@@ -137,28 +212,26 @@ class IotjsDebugSession extends DebugSession {
     this._protocolhandler.debuggerClient = this._debuggerClient;
 
     this._debuggerClient.connect()
-      .then(() => {
-        this.log(`Connected to: ${args.address}:${args.port}`, LOG_LEVEL.SESSION);
-        this.sendResponse(response);
-      })
-      .catch(error => {
-        this.log(error.message, LOG_LEVEL.ERROR);
-        this.sendErrorResponse(response, error);
-      })
-      .then(() => {
-        this.sendEvent(new InitializedEvent());
-      });
-  }
-
-  protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments): void {
-    this.sendErrorResponse(response, new Error('Launching is not supported. Use Attach.'));
+    .then(() => {
+      this.log(`Connected to: ${args.address}:${args.port}`, LOG_LEVEL.SESSION);
+      this.sendResponse(response);
+    })
+    .catch(error => {
+      this.log(error.message, LOG_LEVEL.ERROR);
+      this.sendErrorResponse(response, error);
+    })
+    .then(() => {
+      this.sendEvent(new InitializedEvent());
+    });
   }
 
   protected disconnectRequest(
     response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments
   ): void {
+    if (this._iotjsProcess) {
+      this._iotjsProcess.kill();
+    }
     this._debuggerClient.disconnect();
-
     this.sendEvent(new TerminatedEvent());
     this.sendResponse(response);
   }
@@ -353,12 +426,13 @@ class IotjsDebugSession extends DebugSession {
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
     try {
+      const currentArgs = this._attachArgs || this._launchArgs;
       const backtraceData: JerryBacktraceResult = await this._protocolhandler.requestBacktrace(args.startFrame,
                                                                                                args.levels);
       const stk = backtraceData.backtrace.map((f, i) => new StackFrame(
         1000 + i,
         f.func.name || 'global',
-        this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
+        this.pathToSource(`${currentArgs.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
         f.line,
         f.func.column)
       );
@@ -500,9 +574,9 @@ class IotjsDebugSession extends DebugSession {
 
   private handleSource(data: JerryMessageScriptParsed): void {
     const src = this._protocolhandler.getSource(data.id);
+    const currentArgs = this._attachArgs || this._launchArgs;
     if (src !== '') {
-      const path = Path.join(`${this._args.localRoot}`, `${this.pathToBasename(data.name)}`);
-
+      const path = Path.join(`${currentArgs.localRoot}`, `${this.pathToBasename(data.name)}`);
       const write = c => Fs.writeSync(Fs.openSync(path, 'w'), c);
 
       if (Fs.existsSync(path)) {

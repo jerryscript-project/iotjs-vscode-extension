@@ -17,20 +17,45 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
-  // IP address on which the server listening.
+  /** IP address on which the server listening. */
   address: string;
-  // Debug port to attach to.
+  /** Debug port to attach to. */
   port: number;
-  // VSCode's root directory.
-  localRoot?: string;
-  // Automatically stop target after launch.
+  /** VSCode's root directory. */
+  localRoot: string;
+  /** Automatically stop target after launch. */
   stopOnEntry?: boolean;
-  // Allows to log debug messages to console.
-  debugLog?: number;
-  // Filename.
+  /** Allows to log debug messages to console. */
+  debugLog: number;
+  /** Filename. */
   program?: string;
-  // Ask for filename if in wait-for-source mode.
+  /** Ask for filename if in wait-for-source mode. */
   provideSource: boolean;
+  /** Absolute path to Tizen Studio.*/
+  tizenStudioPath?: string;
+  /** Absolute path to IoTjs. */
+  IoTjsPath?: string;
+}
+
+export interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+  /** This is the absolute path to IoT.js (or JerryScript) executable. */
+  program: string;
+  /** This allows to log debug messages to console. */
+  debugLog: number;
+  /** Optional arguments to be passed. */
+  args?: string[];
+  /** VSCode's root directory.*/
+  localRoot: string;
+  /** Additional environment variables */
+  env?: { [key: string]: string };
+  /** The IP address on which the server is listening. Default value is localhost. */
+  address: string;
+  /** Debug port.*/
+  port: number;
+  /** Absolute path to Tizen Studio. */
+  tizenStudioPath?: string;
+  /** Absolute path to IoTjs. */
+  IoTjsPath?: string;
 }
 
 export interface SourceSendingOptions {

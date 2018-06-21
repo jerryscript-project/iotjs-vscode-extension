@@ -51,7 +51,7 @@
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "copy": "cp ./src/IotjsFunctions.json ./out/",
+    "copy": "cp ./src/IotjsFunctions.json ./tools/setup.sh ./tools/InstallTizenApp.sh ./out/",
     "compile": "tsc -p ./ && npm run copy",
     "watch": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
@@ -71,6 +71,7 @@
   },
   "dependencies": {
     "babel-preset-env": "^1.6.1",
+    "node-ssh": "^5.1.2",
     "vscode-debugadapter": "^1.29.0",
     "vscode-debugprotocol": "^1.29.0",
     "ws": "^5.1.1"
@@ -136,6 +137,89 @@
                 "type": "number",
                 "description": "Set log level for the debugger: 0 none, 1 error, 2 session, 3 protocol, 4 verbose",
                 "default": 0
+              },
+              "tizenStudioPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute path to Tizen Studio.",
+                "default": null
+              },
+              "IoTjsPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute path to IoTjs.",
+                "default": null
+              }
+            }
+          },
+          "launch": {
+            "required": [],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to the program.",
+                "default": "iotjs"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop program after launch.",
+                "default": false
+              },
+              "args": {
+                "type": "array",
+                "description": "Command line arguments passed to the program.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "localRoot": {
+                "type": "string",
+                "description": "Absolute path to the working directory of the program being debugged. Default is the current workspace.",
+                "default": "${workspaceRoot}"
+              },
+              "debugLog": {
+                "type": "number",
+                "description": "Set log level for the debugger: 0 none, 1 error, 2 session, 3 protocol, 4 verbose",
+                "default": 0
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Environment variables passed to the program.",
+                "default": {}
+              },
+              "address": {
+                "type": "string",
+                "description": "IP address on which the server listening. Default is 'localhost'.",
+                "default": "localhost"
+              },
+              "port": {
+                "type": "number",
+                "description": "Debug port.",
+                "default": 5001
+              },
+              "tizenStudioPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute path to Tizen Studio.",
+                "default": null
+              },
+              "IoTjsPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute path to IoTjs.",
+                "default": null
               }
             }
           }
@@ -151,8 +235,30 @@
               "address": "localhost",
               "port": 5001,
               "localRoot": "${workspaceRoot}",
+              "tizenStudioPath": "",
               "stopOnEntry": false,
               "debugLog": 0
+            }
+          },
+          {
+            "label": "IoT.js: Launch",
+            "description": "Launch IoT.js or JerryScript automatically.",
+            "body": {
+              "name": "IoT.js: Launch",
+              "type": "iotjs",
+              "request": "launch",
+              "program": "iotjs",
+              "stopOnEntry": false,
+              "localRoot": "${workspaceRoot}",
+              "tizenStudioPath": "",
+              "IoTjsPath": "",
+              "port": 5001,
+              "address": "localhost",
+              "debugLog": 0,
+              "args": [
+                "--start-debug-server",
+                "--debugger-wait-source"
+              ]
             }
           }
         ]
