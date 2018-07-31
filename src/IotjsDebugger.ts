@@ -28,7 +28,7 @@ import { IAttachRequestArguments, SourceSendingOptions, TemporaryBreakpoint } fr
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
-  JerryMessageExceptionHit, JerryMessageBreakpointHit
+  JerryMessageExceptionHit, JerryMessageBreakpointHit, JerryBacktraceResult
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
 import { Breakpoint } from './JerryBreakpoints';
@@ -76,7 +76,7 @@ class IotjsDebugSession extends DebugSession {
     response.body.supportsEvaluateForHovers = false;
     response.body.supportsStepBack = false;
     response.body.supportsRestartRequest = false;
-    response.body.supportsDelayedStackTraceLoading = false;
+    response.body.supportsDelayedStackTraceLoading = true;
 
     this._sourceSendingOptions = <SourceSendingOptions>{
       contextReset: false,
@@ -353,18 +353,19 @@ class IotjsDebugSession extends DebugSession {
     response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
     try {
-      const backtrace = await this._protocolhandler.requestBacktrace();
-      const stk = backtrace.map((f, i) => new StackFrame(
-          1000 + i,
-          f.func.name || 'global',
-          this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
-          f.line,
-          f.func.column
-        )
+      const backtraceData: JerryBacktraceResult = await this._protocolhandler.requestBacktrace(args.startFrame,
+                                                                                               args.levels);
+      const stk = backtraceData.backtrace.map((f, i) => new StackFrame(
+        1000 + i,
+        f.func.name || 'global',
+        this.pathToSource(`${this._args.localRoot}/${this.pathToBasename(f.func.sourceName)}`),
+        f.line,
+        f.func.column)
       );
 
       response.body = {
         stackFrames: stk,
+        totalFrames: backtraceData.totalFrames
       };
 
       this.sendResponse(response);

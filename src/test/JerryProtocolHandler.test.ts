@@ -342,7 +342,7 @@ suite('JerryProtocolHandler', () => {
 
         test('aborts when unhandled message sent', () => {
             delegate.onError.resetHistory();
-            const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 200, 4, 1, 3]);
+            const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 200, 4, 1, 5]);
             handler.onMessage(array);
             assert(delegate.onError.notCalled);
             array[0] = 255;

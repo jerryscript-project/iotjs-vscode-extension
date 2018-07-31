@@ -44,7 +44,7 @@ export interface ParserStackFrame {
 }
 
 export interface JerryDebugProtocolDelegate {
-  onBacktrace?(backtrace: Array<Breakpoint>): void;
+  onBacktrace?(backtrace: JerryBacktraceResult): void;
   onBreakpointHit?(message: JerryMessageBreakpointHit, stopType: string): void;
   onExceptionHit?(message: JerryMessageExceptionHit): void;
   onEvalResult?(subType: number, result: string): void;
@@ -83,6 +83,11 @@ export interface JerryEvalResult {
 
 interface ProtocolFunctionMap {
   [type: number]: (data: Uint8Array) => void;
+}
+
+export interface JerryBacktraceResult {
+  totalFrames: number;
+  backtrace: Array<Breakpoint>;
 }
 
 interface FunctionMap {
@@ -143,7 +148,7 @@ export class JerryDebugProtocolHandler {
   private evalResultData?: Uint8Array;
   private functions: FunctionMap = {};
   private newFunctions: FunctionMap = {};
-  private backtrace: Array<Breakpoint> = [];
+  private backtraceData: JerryBacktraceResult = {totalFrames : 0, backtrace: []};
 
   private nextScriptID: number = 1;
   private exceptionData?: Uint8Array;
@@ -187,6 +192,7 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT]: this.onBreakpointHit,
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_STR]: this.onExceptionStr,
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_STR_END]: this.onExceptionStr,
+      [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT]: this.onEvalResult,
@@ -547,25 +553,26 @@ export class JerryDebugProtocolHandler {
     this.lastStopType = null;
   }
 
-  public onBacktrace(data: Uint8Array): Breakpoint[] {
+  public onBacktrace(data: Uint8Array): JerryBacktraceResult {
     this.logPacket('Backtrace');
-    for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
-      const breakpointData = this.decodeMessage('CI', data, i);
-      this.backtrace.push(this.getBreakpoint(breakpointData).breakpoint);
+
+    if (data[0] === SP.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL) {
+      this.backtraceData.totalFrames = this.decodeMessage('I', data, 1);
+      this.backtraceData.backtrace = [];
+    } else {
+      for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
+        const breakpointData = this.decodeMessage('CI', data, i);
+        this.backtraceData.backtrace.push(this.getBreakpoint(breakpointData).breakpoint);
+      }
     }
 
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END) {
       if (this.delegate.onBacktrace) {
-        this.delegate.onBacktrace(this.backtrace);
+        this.delegate.onBacktrace(this.backtraceData);
       }
-
-      const bt = this.backtrace;
-      this.backtrace = [];
-
-      return bt;
     }
 
-    return [];
+    return this.backtraceData;
   }
 
   public onEvalResult(data: Uint8Array): JerryEvalResult {
@@ -741,11 +748,21 @@ export class JerryDebugProtocolHandler {
     ]));
   }
 
-  public requestBacktrace(): Promise<any> {
+  public requestBacktrace(start?: number, levels?: number): Promise<any> {
+    if (start === undefined)
+      start = 0;
+    if (levels === undefined)
+      levels = 0;
+
     if (!this.lastBreakpointHit) {
       return Promise.reject(new Error('backtrace not allowed while app running'));
     }
-    return this.sendRequest(encodeMessage(this.byteConfig, 'BI', [SP.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE, 0]));
+
+    return this.sendRequest(encodeMessage(this.byteConfig, 'BIIB',
+                                          [SP.CLIENT.JERRY_DEBUGGER_GET_BACKTRACE,
+                                           start,
+                                           start + levels,
+                                           1]));
   }
 
   logPacket(description: string, ignorable: boolean = false) {
