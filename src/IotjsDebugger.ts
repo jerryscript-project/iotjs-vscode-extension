@@ -79,7 +79,7 @@ class IotjsDebugSession extends DebugSession {
     response.body.supportsFunctionBreakpoints = true;
     response.body.supportsEvaluateForHovers = false;
     response.body.supportsStepBack = false;
-    response.body.supportsRestartRequest = false;
+    response.body.supportsRestartRequest = true;
     response.body.supportsDelayedStackTraceLoading = true;
 
     this._sourceSendingOptions = <SourceSendingOptions>{
@@ -237,9 +237,14 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments): void {
-    this.log('restartRequest: Not implemented yet', LOG_LEVEL.SESSION);
-
-    this.sendResponse(response);
+    this.log('restartRequest', LOG_LEVEL.SESSION);
+    try {
+      this._protocolhandler.restart();
+      this.sendResponse(response);
+    } catch (error) {
+      this.log(error.message, LOG_LEVEL.ERROR);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
   }
 
   protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {

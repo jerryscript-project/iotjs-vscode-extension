@@ -244,6 +244,13 @@ export class JerryDebugProtocolHandler {
     return this.resumeExec(SP.CLIENT.JERRY_DEBUGGER_CONTINUE);
   }
 
+  public restart(): Promise<any> {
+    const array = stringToCesu8(SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_ABORT + '\'r353t\'', 1 + 4, this.byteConfig);
+    array[0] = SP.CLIENT.JERRY_DEBUGGER_EVAL;
+
+    return this.sendRequest(array);
+  }
+
   public getPossibleBreakpoints(scriptId: number, startLine: number, endLine?: number): Array<Breakpoint> {
     const array = [];
     const lineList = this.lineLists[scriptId];
