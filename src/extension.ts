@@ -24,6 +24,12 @@ import * as Cp from 'child_process';
 // FIX ME: Change this require to a more consistent solution.
 // tslint:disable:no-var-requires
 const iotjs = require('./IotjsFunctions.json');
+let tizenStudioPath = undefined;
+let IoTjsPath = undefined;
+let lastModified = {
+  filePath: undefined,
+  mtime: undefined
+};
 
 const defaultModules = [{
   link: 'process',
@@ -60,6 +66,58 @@ const provideInitialConfigurations = (): string => {
     `\t"configurations": ${config}`,
     '}'
   ].join('\n');
+};
+
+const checkPath = () => {
+  fs.stat(lastModified.filePath, async (err, stat) => {
+    if (lastModified.mtime < stat.mtime) {
+      await setup();
+    }
+    createTizenProject();
+  });
+};
+
+const createTizenProject = async() => {
+  if (!tizenStudioPath) {
+    vscode.window.showErrorMessage('Please specify Tizen Studio path in launch.json');
+    return;
+  }
+  const createPath = path.join(__dirname, 'CreateTizenProject.sh');
+  const projectName = await vscode.window.showInputBox({
+    placeHolder: 'IoT.js Tizen project name',
+    prompt: 'Name your new project please',
+    ignoreFocusOut: true
+  });
+  if (projectName) {
+    const projectPath = await vscode.window.showOpenDialog({
+      openLabel: 'Set as destination directory',
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false
+    });
+    if (projectPath) {
+      const createProject = Cp.execFile(createPath, [projectName, projectPath[0].path, tizenStudioPath]);
+      createProject.stdout.on('data', createLog => {
+        console.log(createLog.toString());
+      });
+      createProject.stderr.on('data', errorLog => {
+        console.log(errorLog.toString());
+      });
+      fs.mkdir(`${projectPath[0].path}/.vscode`, (err) => {
+        if (err) {
+          vscode.window.showErrorMessage(err.message);
+          return;
+        }
+      });
+      fs.copyFile(lastModified.filePath, `${projectPath[0].path}/.vscode/launch.json`, (err) => {
+        if (err) {
+          vscode.window.showErrorMessage(err.message);
+          return;
+        }
+      });
+      vscode.commands.executeCommand('vscode.openFolder', projectPath[0], true);
+    }
+  }
 };
 
 const walkSync = (dir: string, filelist: string[] = []): string[] => {
@@ -183,32 +241,49 @@ const createHover = (document: vscode.TextDocument, position: vscode.Position): 
   return new vscode.Hover(hoverContent);
 };
 
-const setup = () => {
-  vscode.workspace.findFiles('**/launch.json')
-  .then(files => {
-    const setup = require(files[0].path);
+const setup = async () => {
+  await getPath();
+  if (tizenStudioPath && IoTjsPath) {
     const setupPath = path.join(__dirname, 'setup.sh');
-    let tizenStudioPath;
-    let IoTjsPath;
-    setup.configurations.forEach(i => {
-      if (i.tizenStudioPath && i.IoTjsPath) {
+    const setupScript = Cp.spawn(`source ${setupPath}`, [tizenStudioPath.toString(), IoTjsPath.toString()]);
+    setupScript.stdout.on('data', setupLog => {
+      console.log(setupLog.toString());
+    });
+  }
+};
+
+const getPath = async () => {
+  lastModified.filePath = undefined;
+  tizenStudioPath = undefined;
+  await vscode.workspace.findFiles('**/launch.json')
+  .then(files => {
+    lastModified.filePath = files[0].path;
+    fs.stat(lastModified.filePath, (err, stats) => {
+      lastModified.mtime = stats.mtime;
+    });
+    let config = require(lastModified.filePath);
+    config.configurations.forEach(i => {
+      if (i.tizenStudioPath) {
         tizenStudioPath = i.tizenStudioPath;
+      }
+      if (i.IoTjsPath) {
         IoTjsPath = i.IoTjsPath;
       }
     });
-    if (tizenStudioPath && IoTjsPath) {
-      const setupScript = Cp.spawn(`source ${setupPath}`, [tizenStudioPath.toString(), IoTjsPath.toString()]);
-      setupScript.stdout.on('data', setupLog => {
-        console.log(setupLog.toString());
-      });
-    }
+    Object.keys(require.cache).forEach((id) => {
+      if (/launch.json/.test(id)) {
+        delete require.cache[id];
+      }
+    });
   });
+
 };
 
 export const activate = (context: vscode.ExtensionContext) => {
-  setup();
+  getPath();
   context.subscriptions.push(
     vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
+    vscode.commands.registerCommand('iotjs-debug.createTizenProject', checkPath),
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => processCustomEvent(e)),
     vscode.languages.registerCompletionItemProvider(JS_MODE, {
       provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
