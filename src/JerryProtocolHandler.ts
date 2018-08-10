@@ -192,7 +192,7 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_HIT]: this.onBreakpointHit,
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_STR]: this.onExceptionStr,
       [SP.SERVER.JERRY_DEBUGGER_EXCEPTION_STR_END]: this.onExceptionStr,
-      [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL]: this.onBacktrace,
+      [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL]: this.onBacktraceTotal,
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT]: this.onEvalResult,
@@ -553,17 +553,21 @@ export class JerryDebugProtocolHandler {
     this.lastStopType = null;
   }
 
-  public onBacktrace(data: Uint8Array): JerryBacktraceResult {
-    this.logPacket('Backtrace');
+  public onBacktraceTotal(data: Uint8Array): void {
+    this.logPacket('Backtrace Total');
 
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_BACKTRACE_TOTAL) {
       this.backtraceData.totalFrames = this.decodeMessage('I', data, 1);
       this.backtraceData.backtrace = [];
-    } else {
-      for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
-        const breakpointData = this.decodeMessage('CI', data, i);
-        this.backtraceData.backtrace.push(this.getBreakpoint(breakpointData).breakpoint);
-      }
+    }
+  }
+
+  public onBacktrace(data: Uint8Array): JerryBacktraceResult {
+    this.logPacket('Backtrace');
+
+    for (let i = 1; i < data.byteLength; i += this.byteConfig.cpointerSize + 4) {
+      const breakpointData = this.decodeMessage('CI', data, i);
+      this.backtraceData.backtrace.push(this.getBreakpoint(breakpointData).breakpoint);
     }
 
     if (data[0] === SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END) {
