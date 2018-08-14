@@ -8,6 +8,7 @@
 - [Features](#features)
 - [Requirements](#requirements)
 - [How to use](#how-to-use)
+- [Tizen Studio](#tizen-studio)
 - [License](#license)
 
 # Introduction
@@ -31,12 +32,12 @@
     - Exception hint
     - Handle source receive from the engine
     - Sending source code from the vscode to the engine
+    - Automatic IoT.js debug server launch
 
 - Language support
   - Available features:
     - Require module name completer
     - Module's function completer
-  - Work in progress:
     - Hover information provider for IoT.js specific module functions
 
 
@@ -70,17 +71,19 @@ You have to open (or create a new) project folder where you have to define a `la
 These configuration options are required. Manifest:
 - `name`: The name which will be visible in the debug view
 - `type`: This must be `iotjs` otherwise the debug session wont start
-- `request`: Type of the session start, only the `attach` available for now
+- `request`: Type of the session start
 - `address`: IP address on which the server listening. Default is `localhost`
 - `port`: Debug port to attach to. Default is `5001`
 - `localRoot`: The local source root directoy, most cases this is the `${workspaceRoot}`
 - `stopOnEntry`: Autmoatically stop the program after launch, the IoT.js will stop on the first breakpoint for now, no matter that is enabled or not.
-- `debugLog`: The type of the debug log, you can choose from 0 to 5:
+- `debugLog`: The type of the debug log, you can choose from 0 to 4:
     - 0: none
     - 1: Error (show errors only)
     - 2: Debug Session related (requests and their responses)
     - 3: Debug Protocol related (communication between the engine and the client)
     - 4: Verbose (each log type included)
+
+You can also define [Launch](#launch) instead of Attach to automate starting debug server.
 
 Now you can connect to a running engine.
 If you are using IoT.js you have to do the following:
@@ -133,6 +136,45 @@ $ ./build/bin/jerry --start-debug-server --debug-port {number} {file}
 # NOTE: This is not fully supported for now
 $ ./build/bin/jerry --start-debug-server --debugger-wait-source
 ```
+# Launch 
+Alternatively you can use LaunchRequest instead of AttachRequest for automatic debug server launch.
+In case of IoT.js Debug it looks like this:
+```json
+ {
+    "name": "IoT.js: Launch",
+    "type": "iotjs",
+    "request": "launch",
+    "program": "iotjs",
+    "address": "localhost",
+    "port": 5001,
+    "localRoot": "${workspaceRoot}",
+    "stopOnEntry": false,
+    "debugLog": 0,
+    "args": [
+        "--start-debug-server",
+        "--debugger-wait-source"
+    ]
+}
+```
+
+These configuration options are required. Manifest:
+- `name`: The name which will be visible in the debug view
+- `type`: This must be `iotjs` otherwise the debug session wont start
+- `request`: Type of the session start
+- `program`: Runtime executable for debug server. Default is iotjs. If you debug on desktop use
+absolute path to executable (e.g.:/path/to/iotjs/build/x86_64-linux/debug/bin/iotjs)
+- `address`: IP address on which the server listening. Default is `localhost`
+- `port`: Debug port to attach to. Default is `5001`
+- `localRoot`: The local source root directoy, most cases this is the `${workspaceRoot}`
+- `stopOnEntry`: Autmoatically stop the program after launch, the IoT.js will stop on the first breakpoint for now, no matter that is enabled or not.
+- `debugLog`: The type of the debug log, you can choose from 0 to 4:
+    - 0: none
+    - 1: Error (show errors only)
+    - 2: Debug Session related (requests and their responses)
+    - 3: Debug Protocol related (communication between the engine and the client)
+    - 4: Verbose (each log type included)
+- `args`: Arguments for debug server. In case of IoT.js use --start-debug-server and --debugger-wait-source.
+
 
 After the engine is running you can start the debug session inside the extension host by pressing the `F5` key or click on the green triangle in the debug panel.
 If the client (VSCode extension) is connected then you have to see that file which is running inside the engine or if you started the engine in waiting mode you will get a prompt window where you can select that file what you want to running and then you can see where the execution is stopped. Now you can use the VSCode debug action bar to control the debug session.
@@ -151,6 +193,19 @@ If you want to use the development extension just like any other extension in yo
 # After this just reload the VSCode and the extension will be "installed"
 $ cp . ~/.vscode/extensions/ -r
 ```
+# Tizen Studio
+Now you can use the extension to debug Tizen applications.
+Requirements:
+- The latest version of [Tizen Studio with CLI](https://developer.tizen.org/development/tizen-studio/download)
+
+After installing Tizen Studio you can add the following lines of information to launch.json:
+```json
+{
+    "tizenStudioPath": "/absolute/path/to/tizen-studio",
+    "IoTjsPath": "/absolute/path/to/iotjs"
+}
+```
+This enables the extension to install required packages for Tizen Studio to be able to create IoTjsApp native project. The installation may take several minutes. 
 
 # License
 IoT.js VSCode extension is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.

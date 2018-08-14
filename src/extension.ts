@@ -19,9 +19,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as Cp from 'child_process';
 
 // FIX ME: Change this require to a more consistent solution.
-// tslint:disable-next-line:no-var-requires
+// tslint:disable:no-var-requires
 const iotjs = require('./IotjsFunctions.json');
 
 const defaultModules = [{
@@ -182,7 +183,30 @@ const createHover = (document: vscode.TextDocument, position: vscode.Position): 
   return new vscode.Hover(hoverContent);
 };
 
+const setup = () => {
+  vscode.workspace.findFiles('**/launch.json')
+  .then(files => {
+    const setup = require(files[0].path);
+    const setupPath = path.join(__dirname, 'setup.sh');
+    let tizenStudioPath;
+    let IoTjsPath;
+    setup.configurations.forEach(i => {
+      if (i.tizenStudioPath && i.IoTjsPath) {
+        tizenStudioPath = i.tizenStudioPath;
+        IoTjsPath = i.IoTjsPath;
+      }
+    });
+    if (tizenStudioPath && IoTjsPath) {
+      const setupScript = Cp.spawn(`source ${setupPath}`, [tizenStudioPath.toString(), IoTjsPath.toString()]);
+      setupScript.stdout.on('data', setupLog => {
+        console.log(setupLog.toString());
+      });
+    }
+  });
+};
+
 export const activate = (context: vscode.ExtensionContext) => {
+  setup();
   context.subscriptions.push(
     vscode.commands.registerCommand('iotjs-debug.provideInitialConfigurations', provideInitialConfigurations),
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => processCustomEvent(e)),
