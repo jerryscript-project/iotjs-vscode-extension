@@ -873,4 +873,30 @@ suite('JerryProtocolHandler', () => {
         assert(debugClient.send.withArgs(array));
       });
     });
+
+    suite('restart()', () => {
+      test('sends the correct message', () => {
+        const { handler, debugClient } = setupHaltedProtocolHandler();
+        const defConfig = {
+            cpointerSize: 2,
+            littleEndian: false,
+          };
+        handler.restart();
+        let array = stringToCesu8(SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_ABORT + '\'r353t\'', 1 + 4, defConfig);
+        array[0] = SP.CLIENT.JERRY_DEBUGGER_EVAL;
+        assert(debugClient.send.withArgs(array));
+      });
+
+      test('sends the correct message2', () => {
+        const { handler, debugClient } = setupHaltedProtocolHandler();
+        const altConfig = {
+            cpointerSize: 4,
+            littleEndian: false,
+          };
+        handler.restart();
+        let array = stringToCesu8(SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_ABORT + '\'r353t\'', 1 + 4, altConfig);
+        array[0] = SP.CLIENT.JERRY_DEBUGGER_EVAL;
+        assert(debugClient.send.withArgs(array));
+      });
+    });
 });
