@@ -205,7 +205,10 @@ After installing Tizen Studio you can add the following lines of information to 
     "IoTjsPath": "/absolute/path/to/iotjs"
 }
 ```
-This enables the extension to install required packages for Tizen Studio to be able to create IoTjsApp native project. The installation may take several minutes. 
+This enables the extension to install required packages for Tizen Studio to be able to create [IoTjsApp native project](#create-tizen-native-project). The installation may take several minutes. 
+
+# Create Tizen Native Project
+To create a Tizen Native Project in VSCode you need to simply click the 'Create IoTjs Tizen Project' button on the top right corner of your screen and provide information such as name and destination directory for your new IoTjsApp.
 
 # License
 IoT.js VSCode extension is Open Source software under the [Apache 2.0 license](LICENSE). Complete license and copyright information can be found within the code.
