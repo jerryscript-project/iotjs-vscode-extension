@@ -2,7 +2,7 @@
   "name": "iotjs-vscode-extension",
   "displayName": "IoT.js",
   "description": "IoT.js Debugging, IntelliSense for Visual Studio Code",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "publisher": "Samsung",
   "author": {
     "name": "Samsung Electronics Co., Ltd."
@@ -88,16 +88,18 @@
     "out/**"
   ],
   "contributes": {
-    "commands":[ {
-      "command": "iotjs-debug.createTizenProject",
-      "title": "Create IoT.js Tizen Project"
-    } 
+    "commands": [
+      {
+        "command": "iotjs-debug.createTizenProject",
+        "title": "Create IoT.js Tizen Project"
+      }
     ],
     "menus": {
-      "editor/title": [ {
-        "command": "iotjs-debug.createTizenProject",
-        "group": "navigation"
-      }
+      "editor/title": [
+        {
+          "command": "iotjs-debug.createTizenProject",
+          "group": "navigation"
+        }
       ]
     },
     "breakpoints": [
