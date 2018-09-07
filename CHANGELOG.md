@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.9.0
+ - Added features:
+   - Restart function (only supported with JerryScript yet)
+   - Automate debug server launch and Tizen Studio package installation
+   - Added a 'Create IoTjs Tizen Project' option to extension
+   - Support delayed stack trace loading
+
 ## Version 0.8.0
 - Added features:
   - Completion Provider for module names and functions
