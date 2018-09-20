@@ -96,28 +96,17 @@ const createTizenProject = async() => {
       canSelectMany: false
     });
     if (projectPath) {
-      const createProject = Cp.execFile(createPath, [projectName, projectPath[0].path, tizenStudioPath]);
-      createProject.stdout.on('data', createLog => {
-        console.log(createLog.toString());
-      });
-      createProject.stderr.on('data', errorLog => {
-        console.log(errorLog.toString());
-      });
-      fs.mkdir(`${projectPath[0].path}/.vscode`, (err) => {
-        if (err) {
-          vscode.window.showErrorMessage(err.message);
-          return;
-        }
-      });
-      fs.copyFile(lastModified.filePath, `${projectPath[0].path}/.vscode/launch.json`, (err) => {
-        if (err) {
-          vscode.window.showErrorMessage(err.message);
-          return;
-        }
-      });
-      vscode.commands.executeCommand('vscode.openFolder', projectPath[0], true);
+      Cp.execFileSync(createPath, [projectName, projectPath[0].path, tizenStudioPath]);
+      openProject(projectPath[0].path, projectName);
     }
   }
+};
+
+const openProject = (path: string, name: string) => {
+  const project = vscode.Uri.file(`${path}/${name}`);
+  fs.mkdirSync(`${project.path}/.vscode`);
+  fs.copyFileSync(lastModified.filePath, `${project.path}/.vscode/launch.json`);
+  vscode.commands.executeCommand('vscode.openFolder', project, true);
 };
 
 const walkSync = (dir: string, filelist: string[] = []): string[] => {
