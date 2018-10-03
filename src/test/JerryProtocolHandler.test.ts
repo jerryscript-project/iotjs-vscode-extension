@@ -3,7 +3,7 @@ import { Breakpoint } from '../JerryBreakpoints';
 import { JerryDebugProtocolHandler } from '../JerryProtocolHandler';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { stringToCesu8 } from '../JerryUtils';
+import { stringToCesu8, setUint32 } from '../JerryUtils';
 
 // utility function
 function encodeArray(byte: number, str: string) {
@@ -13,6 +13,16 @@ function encodeArray(byte: number, str: string) {
     array[i + 1] = str.charCodeAt(i);
   }
   return array;
+}
+
+// Extends configArray with JERRY_DEBUGGER_VERSION.
+//
+// configArray data: [messageType, byteOrder, maxMessageSize, cpointerSize]
+function createConfiguration(configArray) {
+  let version = new Uint8Array(4);
+  setUint32(Boolean(configArray[1]), version, 0, SP.JERRY_DEBUGGER_VERSION);
+  configArray.splice(2, 0, ...version);
+  return Uint8Array.from(configArray);
 }
 
 function setupHaltedProtocolHandler(isThereBreakpointHit: boolean = false) {
@@ -47,35 +57,35 @@ suite('JerryProtocolHandler', () => {
 
     test('aborts when message too short', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([1, 2, 3, 4]);
+      const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 2, 3, 4]);
       handler.onConfiguration(array);
       assert(delegate.onError.calledOnce);
     });
 
     test('allows otherwise valid message to be too long', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([0, 200, 4, 1, SP.JERRY_DEBUGGER_VERSION, 0]);
+      const array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 200, 4, 0]);
       handler.onConfiguration(array);
       assert(delegate.onError.notCalled);
     });
 
     test('aborts when compressed pointer wrong size', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([0, 200, 6, 1, SP.JERRY_DEBUGGER_VERSION]);
+      const array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 200, 6]);
       handler.onConfiguration(array);
       assert(delegate.onError.calledOnce);
     });
 
     test('aborts when version unexpected', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([0, 200, 4, 1, 0]);
+      const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 0, 0, 0, 0, 200, 4]);
       handler.onConfiguration(array);
       assert(delegate.onError.calledOnce);
     });
 
     test('succeeds when everything is normal', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([0, 200, 4, 1, SP.JERRY_DEBUGGER_VERSION]);
+      const array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 200, 4]);
       handler.onConfiguration(array);
       assert(delegate.onError.notCalled);
     });
@@ -223,7 +233,7 @@ suite('JerryProtocolHandler', () => {
       };
       const handler = new JerryDebugProtocolHandler(delegate);
 
-      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
+      let array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 128, 2]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -250,7 +260,7 @@ suite('JerryProtocolHandler', () => {
 
     test('calls delegate function immediately on END event', () => {
       delegate.onBacktrace.resetHistory();
-      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
+      let array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 128, 2]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -275,7 +285,7 @@ suite('JerryProtocolHandler', () => {
 
     test('calls delegate function only on END event', () => {
       delegate.onBacktrace.resetHistory();
-      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
+      let array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 128, 2]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -361,7 +371,7 @@ suite('JerryProtocolHandler', () => {
 
     test('aborts when unhandled message sent', () => {
       delegate.onError.resetHistory();
-      const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 200, 4, 1, 5]);
+      const array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 200, 4]);
       handler.onMessage(array);
       assert(delegate.onError.notCalled);
       array[0] = 255;
@@ -495,7 +505,7 @@ suite('JerryProtocolHandler', () => {
 
     test('throws on line w/o breakpoint, succeeds on line w/ breakpoint', () => {
       const handler = new JerryDebugProtocolHandler({});
-      let array = Uint8Array.from([0, 128, 2, 1, 1]);
+      let array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 128, 2]);
       handler.onConfiguration(array);
 
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
@@ -754,7 +764,7 @@ suite('JerryProtocolHandler', () => {
       const handler = new JerryDebugProtocolHandler({});
       handler.debuggerClient = debugClient as any;
 
-      let array = Uint8Array.from([0, 128, 2, 1, 1]);
+      let array = createConfiguration([SP.SERVER.JERRY_DEBUGGER_CONFIGURATION, 1, 128, 2]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
