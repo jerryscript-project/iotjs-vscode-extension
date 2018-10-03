@@ -1,30 +1,44 @@
 {
   "adc": [
     {
+      "label": "open",
+      "kind": 2,
+      "detail": "adc.open(configuration, callback)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration on Linux.\n  * `pin` {number} Mandatory configuration on NuttX and TizenRT.\n* `callback` {Function}\n  * `err`: {Error|null}\n  * `adcpin` {Object} An instance of AdcPin.\n* Returns: {Object} An instance of AdcPin.\n\nOpens an ADC pin with the specified configuration asynchronously.\n",
+      "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "adc.openSync(configuration)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration on Linux.\n  * `pin` {number} Mandatory configuration on NuttX and TizenRT.\n* `callback` {Function}\n  * `err`: {Error|null}\n* Returns: {Object} An instance of AdcPin.\n\nOpens an ADC pin with the specified configuration synchronously.\n",
+      "insertText": "openSync"
+    },
+    {
       "label": "read",
       "kind": 2,
-      "detail": "adc.read(callback)",
-      "documentation": "* `callback` {Function}\n  * `err`: {Error|null}\n\nReads the analog value from the pin asynchronously.\n\n`callback` will be called having read the analog value.\n",
+      "detail": "adcpin.read(callback)",
+      "documentation": "* `callback` {Function}\n  * `err`: {Error|null}\n  * `{number}` Analog value.\n\nReads the analog value from the pin asynchronously.\n\n`callback` will be called having read the analog value.\n",
       "insertText": "read"
     },
     {
       "label": "readSync",
       "kind": 2,
-      "detail": "adc.readSync()",
-      "documentation": "* Returns: `{int}` Analog value.\n\nReads the analog value from the pin synchronously.\n",
+      "detail": "adcpin.readSync()",
+      "documentation": "* Returns: `{number}` Analog value.\n\nReads the analog value from the pin synchronously.\n",
       "insertText": "readSync"
     },
     {
       "label": "close",
       "kind": 2,
-      "detail": "adc.close([callback])",
+      "detail": "adcpin.close([callback])",
       "documentation": "* `callback` {Function}\n  * `err`: {Error|null}\n\nCloses ADC pin asynchronously. This function must be called after the work of ADC finished.\n\n`callback` will be called after ADC device is released.\n",
       "insertText": "close"
     },
     {
       "label": "closeSync",
       "kind": 2,
-      "detail": "adc.closeSync()",
+      "detail": "adcpin.closeSync()",
       "documentation": "\nCloses ADC pin synchronously. This function must be called after the work of ADC finished.\n",
       "insertText": "closeSync"
     }
@@ -222,6 +236,57 @@
       "detail": "buf.readUInt16LE(offset[, noAssert])",
       "documentation": "* `offset` {number} Start position of buffer for reading.\n* `noAssert` {boolean} Skip offset validation. **Default:** `false`\n* Returns: {number}\n\nReads an unsigned 16-bit integer from `buf` buffer starting from\n`offset` position with little endian format.\n\nIf `noAssert` is set and the offset is higher than the size of\nthe buffer the result is undefined.\n",
       "insertText": "readUInt16LE"
+    }
+  ],
+  "crypto": [
+    {
+      "label": "createVerify",
+      "kind": 2,
+      "detail": "crypto.createVerify(hashType)",
+      "documentation": "Creates and returns a `Verify` object. This object can not be created with the `new` keyword.\n  - `hashType` {string} Hash type of the signature. {`sha1 | sha256`}\n\nNote: We currently only support `rsa-sha1` and `rsa-sha256` signatures.\n",
+      "insertText": "createVerify"
+    },
+    {
+      "label": "createHash",
+      "kind": 2,
+      "detail": "crypto.createHash(hashType)",
+      "documentation": "Creates and returns a `Hash` object. This object can not be created with the `new` keyword.\n  - `hashType` {string} Type of the hash. {`sha1 | sha256`}\n\nNote: We currently only support `sha1` and `sha256` hashes.\n",
+      "insertText": "createHash"
+    },
+    {
+      "label": "getHashes",
+      "kind": 2,
+      "detail": "crypto.getHashes()",
+      "documentation": "Returns the available hashing methods.\n\n## Class: Verify\nThe `Verify` class allows the user to verify a signature against a public key.\n",
+      "insertText": "getHashes"
+    },
+    {
+      "label": "update",
+      "kind": 2,
+      "detail": "verify.update(data)",
+      "documentation": "Updates the `Verify` object with the given `data`.\n  - `data` {Buffer | string} Updates the object with the `data`. If there is already `data` in the object, concatenates them.\n",
+      "insertText": "update"
+    },
+    {
+      "label": "verify",
+      "kind": 2,
+      "detail": "verify.verify(publicKey, signature)",
+      "documentation": "Verifies the `signature` against the `publicKey` using the `data` added with `verify.update()`.\n  - `publicKey` {string | Buffer} A valid RSA Public key.\n  - `signature` {string | Buffer} A base64 encoded `rsa-sha1` or `rsa-sha256` signature.\n\nReturns `true` if the verification succeeds, `false` otherwise.\n",
+      "insertText": "verify"
+    },
+    {
+      "label": "update",
+      "kind": 2,
+      "detail": "hash.update(data)",
+      "documentation": "Updates the `Hash` object with the given `data`.\n  - `data` {Buffer | String} Updates the object with the `data`. If there is already `data` in the object, concatenates them.\n",
+      "insertText": "update"
+    },
+    {
+      "label": "digest",
+      "kind": 2,
+      "detail": "hash.digest(encoding)",
+      "documentation": "Returns an `encoded` hash of the input `data` as a `string` or `Buffer`.\n  - `encoding` {string} Encodes the result of the hashing to the given format. Can be {`hex | base64`}. If no `encoding` is given, or the given `encoding` doesn't match the known formats, returns the raw `hash` in a `Buffer`.\n\nDigest can only be called once on a given `Hash` object.\n",
+      "insertText": "digest"
     }
   ],
   "dgram": [
@@ -593,9 +658,23 @@
     {
       "label": "open",
       "kind": 2,
-      "detail": "gpio.open(configuration[, callback])",
-      "documentation": "* `configuration` {Object}\n  * `pin` {number} Pin number. Mandatory field.\n  * `direction` {GPIO.DIRECTION} Pin direction. **Default:** `GPIO.DIRECTION.OUT`\n  * `mode` {GPIO.MODE} Pin mode. **Default:** `GPIO.MODE.NONE`\n* `callback` {Function}\n  * `error` {Error|null}\n* Returns: {GPIOPin}\n\nOpens the specified GPIO pin and sets the pin configuration.\n\nThe mode argument is ignored on Linux.\n\nThe optional `callback` function will be called after\nopening is completed. The `error` argument is an\n`Error` object on failure or `null` otherwise.\n",
+      "detail": "gpio.open(configuration, callback)",
+      "documentation": "* `configuration` {Object} Configuration for open GPIOPin.\n  * `pin` {number} Pin number. Mandatory field.\n  * `direction` {[gpio.DIRECTION](#direction)} Pin direction. **Default:** `gpio.DIRECTION.OUT`\n  * `mode` {[gpio.MODE](#mode)} Pin mode. **Default:** `gpio.MODE.NONE`\n  * `edge` {[gpio.EDGE](#edge)} Pin edge. **Default:** `gpio.EDGE.NONE`\n* `callback` {Function}\n  * `error` {Error|null}\n  * `gpioPin` {Object} An instance of GPIOPin.\n* Returns: {Object} An instance of GPIOPin.\n\nGet GPIOPin object with configuration asynchronously.\n\nThe `callback` function will be called after\nopening is completed. The `error` argument is an\n`Error` object on failure or `null` otherwise.\n",
       "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "gpio.openSync(configuration)",
+      "documentation": "* `configuration` {Object} Configuration for open GPIOPin.\n  * `pin` {number} Pin number. Mandatory field.\n  * `direction` {[gpio.DIRECTION](#direction)} Pin direction. **Default:** `gpio.DIRECTION.OUT`\n  * `mode` {[gpio.MODE](#mode)} Pin mode. **Default:** `gpio.MODE.NONE`\n  * `edge` {[gpio.EDGE](#edge)} Pin edge. **Default:** `gpio.EDGE.NONE`\n* Returns: {Object} An instance of GPIOPin.\n\nGet GPIOPin object with configuration synchronously.\n",
+      "insertText": "openSync"
+    },
+    {
+      "label": "setDirectionSync",
+      "kind": 2,
+      "detail": "gpiopin.setDirectionSync(direction)",
+      "documentation": "  * `direction` {[gpio.DIRECTION](#direction)} Pin direction.\n\nSet the direction of a GPIO pin.\n",
+      "insertText": "setDirectionSync"
     },
     {
       "label": "write",
@@ -636,8 +715,24 @@
       "label": "closeSync",
       "kind": 2,
       "detail": "gpiopin.closeSync()",
-      "documentation": "\nCloses a GPIO pin.\n",
+      "documentation": "\nSynchronously closes a GPIO pin.\n",
       "insertText": "closeSync"
+    }
+  ],
+  "http-signature": [
+    {
+      "label": "parseRequest",
+      "kind": 2,
+      "detail": "httpSignature.parseRequest(request)",
+      "documentation": "Parses an `HTTP request` and returns with the parsed object.\n  - `request` {Object} A valid `HTTP Request`\n\nThe returned object can be used to later to `verify` the `signature` of the `request`.\n",
+      "insertText": "parseRequest"
+    },
+    {
+      "label": "verify",
+      "kind": 2,
+      "detail": "httpSignature.verify(parsedRequest, publicKey)",
+      "documentation": "Verifies the `parsedRequest`'s `signature` against the given `publicKey`. Returns `true` if the verification succeeds, `false` otherwise.\n  - `parsedRequest` {Object} An `HTTP Request` parsed by `httpSignature.parseRequest()` function.\n  - `publicKey` {Buffer | string} The RSA Public key.\n",
+      "insertText": "verify"
     }
   ],
   "http": [
@@ -733,6 +828,13 @@
       "insertText": "writeHead"
     },
     {
+      "label": "abort",
+      "kind": 2,
+      "detail": "request.abort()",
+      "documentation": "Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.\n",
+      "insertText": "abort"
+    },
+    {
       "label": "end",
       "kind": 2,
       "detail": "request.end([data][, callback])",
@@ -750,7 +852,7 @@
       "label": "write",
       "kind": 2,
       "detail": "request.write(data[, callback])",
-      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a request body. `callback` will be called when data is flushed.\n\n\n## Class: http.IncomingMessage\n\nhttp.IncomingMessage inherits `Stream.readable`.\n",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a request body. `callback` will be called when data is flushed.\n\n\n## Class: http.IncomingMessage\n\nThis object is created internally and returned to the callback in http.request(). It represents the response sent by a server to a request.\n\nhttp.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.\n\n",
       "insertText": "write"
     }
   ],
@@ -759,44 +861,30 @@
       "label": "request",
       "kind": 2,
       "detail": "https.request(options[, callback])",
-      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 80.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n",
       "insertText": "request"
     },
     {
       "label": "get",
       "kind": 2,
       "detail": "https.get(options[, callback])",
-      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 80.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n\nSame as `https.request` except that `https.get` automatically call `req.end()` at the end.\n",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n\nSame as `https.request` except that `https.get` automatically call `req.end()` at the end.\n",
       "insertText": "get"
-    },
-    {
-      "label": "abort",
-      "kind": 2,
-      "detail": "request.abort()",
-      "documentation": "Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.\n\n### request.aborted\nIf the request has been aborted, this contains the time at which the request was aborted in milliseconds since epoch as `Number`.\n",
-      "insertText": "abort"
-    },
-    {
-      "label": "setTimeout",
-      "kind": 2,
-      "detail": "request.setTimeout(ms, cb)",
-      "documentation": "* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provides cb, you should handle the socket's timeout.\n\n\n## Class: https.IncomingMessage\n\nThis object is created internally and returned to the callback in https.request(). It represents the response sent by a server to a request.\n\nhttps.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.\n\n### message.headers\nHTTPS header object.\n\n### message.method\nRequest's method as `string`\n\n### message.statusCode\nHTTPS response status code as `number` of 3-digit.\n\n### message.statusMessage\nHTTPS response status message as `string`\n\n### message.url\nRequests URL as `string`\n",
-      "insertText": "setTimeout"
     }
   ],
   "i2c": [
     {
       "label": "open",
       "kind": 2,
-      "detail": "i2c.open(configuration[, callback])",
-      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `address` {number} Device address.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `i2cBus` {Object} An instance of I2CBus.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration asynchronously.\n",
+      "detail": "i2c.open(configuration, callback)",
+      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)\n  * `address` {number} Device address.\n* `callback` {Function}\n  * `err` {Error|null}\n  * `i2cBus` {Object} An instance of I2CBus.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration asynchronously.\n",
       "insertText": "open"
     },
     {
       "label": "openSync",
       "kind": 2,
       "detail": "i2c.openSync(configuration)",
-      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `address` {number} Device address.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration synchronously.\n",
+      "documentation": "* `configuration` {Object} Configuration for open I2CBus.\n  * `device` {string} Device path. (only on Linux)\n  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)\n  * `address` {number} Device address.\n* Returns: {Object} An instance of I2CBus.\n\nGet I2CBus object with configuration synchronously.\n",
       "insertText": "openSync"
     },
     {
@@ -824,13 +912,13 @@
       "label": "writeSync",
       "kind": 2,
       "detail": "i2cbus.writeSync(bytes)",
-      "documentation": "* `bytes` {Array} Array of bytes to write.\n* `callback` {Function}\n  * `err` {Error|null}\n\nWrite bytes to I2C device synchronously.\n",
+      "documentation": "* `bytes` {Array} Array of bytes to write.\n\nWrite bytes to I2C device synchronously.\n",
       "insertText": "writeSync"
     },
     {
       "label": "close",
       "kind": 2,
-      "detail": "i2cbus.close()",
+      "detail": "i2cbus.close([callback])",
       "documentation": "* `callback` {Function}\n  * `err` {Error|null}\n\nClose I2C device asynchronously.\n",
       "insertText": "close"
     },
@@ -840,6 +928,43 @@
       "detail": "i2cbus.closeSync()",
       "documentation": "\nClose I2C device synchronously.\n",
       "insertText": "closeSync"
+    }
+  ],
+  "mqtt": [
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "mqtt.connect([url], [options], [callback])",
+      "documentation": "- `url` {string} host name optionally prefixed by `mqtt://` or `mqtts://`.\n- `options` {Object}\n    - `clientId` {Buffer | string} Optional. The broker identifies each client by its `clientId`. If not specified, a randomly generated `clientId` is created.\n    - `host` {Buffer | string} The address of the broker.\n    - `port` {number} The port of the broker.\n    - `socket` {net.Socket | TLSSocket} If a `TLSSocket` is given for secure communication it is the user's responsibility to connect it to establish the TLS connection first. Otherwise the client automatically connects the socket to the server.\n    - `username` {Buffer | string} Optional. Use username when onnecting to a broker.\n    - `password` {Buffer | string} Optional. Use password authentication when connecting to a broker.\n    - `keepalive` {number} Keepalive time in seconds. If no data is sent on the connection in the given time window the broker disconnects the client.\n    - `will` {boolean} Optional. If this flag is set to `true`, a `message` and a `topic` must follow with a QoS value between 0 and 2.\n    - `qos` {number} If `will` is set to `true`, the message will be sent with the given QoS.\n    - `topic` {Buffer | string} Only processed when `will` is set to `true`. The topic the `message` should be sent to.\n    - `message` {Buffer | string} Only processed when `will` is set to `true`. The message to be sent to the broker when connecting.\n- `callback` {function} the function which will be executed when the client successfuly connected to the broker.\n\nReturns with an MQTTClient object and starts connecting to a broker. Emits a `connect` event after the connection is completed.\n\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "mqtt.end([force])",
+      "documentation": "- `force` {boolean} force network connection abort\n\nDisconnects the client from the broker.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "subscribe",
+      "kind": 2,
+      "detail": "mqtt.subscribe(topic, [options], [callback])",
+      "documentation": "- `topic` {Buffer | string} topic to subscribe to\n- `options` {Object}\n    - `qos` {number} Optional. Defaults to 0.\n    - `retain` {boolean} Optional. If retain is `true` the client receives the messages that were sent to the desired `topic` before it connected. Defaults to `false`.\n- `callback` {function} the function which will be executed when the subscribe is completed.\n\n\nThe client subscribes to a given `topic`. If there are messages available on the `topic` the client emits a `data` event with the message received from the broker.\n",
+      "insertText": "subscribe"
+    },
+    {
+      "label": "unsubscribe",
+      "kind": 2,
+      "detail": "mqtt.unsubscribe(topic, [callback])",
+      "documentation": "- `topic` {Buffer | string} topic to unsubscribe from\n- `callback` {function} the function which will be executed when the unsubscribe is completed.\n\nUnsubscribes the client from a given topic. If QoS was turned on on the subscription the remaining packets will be sent by the server.\n\n",
+      "insertText": "unsubscribe"
+    },
+    {
+      "label": "publish",
+      "kind": 2,
+      "detail": "mqtt.publish(topic, message, [options], [callback])",
+      "documentation": "- `topic` {Buffer | string} topic to publish to\n- `message` {Buffer | string} message to send\n- `options` {Object}\n    - `qos` {number} Optional. Defaults to 0.\n    - `retain` {boolean} Optional. If retain is `true` the broker stores the message for clients subscribing with retain `true` flag, therefore they can receive it later.\n- `callback` {function} the function which will be executed when the publish is completed\n\n\nPublishes a `message` to the broker under the given `topic`.\n",
+      "insertText": "publish"
     }
   ],
   "module": [
@@ -976,9 +1101,16 @@
     {
       "label": "open",
       "kind": 2,
-      "detail": "pwm.open(configuration[, callback])",
-      "documentation": "* `configuration` {Object} Configuration object which can have the following properties.\n  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).\n  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.\n  * `period` {number} The period of the PWM signal, in seconds (positive number).\n  * `frequency` {integer} In Hz (positive integer).\n  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.\n* `callback` {Function} Callback function.\n  * `err` {Error|null} The error object or `null` if there were no error.\n* Returns: `<PWMPin>`\n\nOpens PWM pin with the specified configuration.\n\nTo correctly open a PWM pin one must know the correct pin number:\n* On Linux, `pin` is a number which is `0` or `1`.\n* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.\n  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)\n\n",
+      "detail": "pwm.open(configuration, callback)",
+      "documentation": "* `configuration` {Object} Configuration object which can have the following properties.\n  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).\n  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.\n  * `period` {number} The period of the PWM signal, in seconds (positive number).\n  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.\n* `callback` {Function} Callback function.\n  * `err` {Error|null} The error object or `null` if there were no error.\n  * `pwmpin` {Object} An instance of PWMPin.\n* Returns: {Object} An instance of PWMPin.\n\nOpens PWM pin with the specified configuration.\n\nTo correctly open a PWM pin one must know the correct pin number:\n* On Linux, `pin` is a number which is `0` or `1`.\n* On Tizen, `pin` is a number which is `2`. (Only ARTIK530 board support PWM.)\n* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.\n  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)\n\n",
       "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "pwm.openSync(configuration)",
+      "documentation": "* `configuration` {Object} Configuration object which can have the following properties.\n  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).\n  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.\n  * `period` {number} The period of the PWM signal, in seconds (positive number).\n  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.\n* Returns: {Object} An instance of PWMPin.\n\nOpens PWM pin with the specified configuration.\n\nTo correctly open a PWM pin one must know the correct pin number:\n* On Linux, `pin` is a number which is `0` or `1`.\n* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.\n  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)\n\n",
+      "insertText": "openSync"
     },
     {
       "label": "setPeriod",
@@ -998,14 +1130,14 @@
       "label": "setFrequency",
       "kind": 2,
       "detail": "pwmpin.setFrequency(frequency[, callback])",
-      "documentation": "* `frequency` {integer} In Hz (positive integer).\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setFequency` method congifures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done asynchronously and the `callback` method is invoked after the\nfrequency is configured to the new value or if an error occured.\n",
+      "documentation": "* `frequency` {integer} In Hz (positive integer).\n* `callback` {Function}\n  * `err` {Error|null} The error object or `null` if there were no error.\n\nThe `setFrequency` method configures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done asynchronously and the `callback` method is invoked after the\nfrequency is configured to the new value or if an error occured.\n",
       "insertText": "setFrequency"
     },
     {
       "label": "setFrequencySync",
       "kind": 2,
       "detail": "pwmpin.setFrequencySync(frequency)",
-      "documentation": "* `frequency` {integer} In Hz (positive integer).\n\nThe `setFequencySync` method congifures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done synchronously and will block till the frequency is configured.\n",
+      "documentation": "* `frequency` {integer} In Hz (positive integer).\n\nThe `setFrequencySync` method configures the frequency of the PWM signal.\n`frequency` is the measurement of how often the signal is repeated in a single period.\n\nConfiguration is done synchronously and will block till the frequency is configured.\n",
       "insertText": "setFrequencySync"
     },
     {
@@ -1085,22 +1217,29 @@
     {
       "label": "open",
       "kind": 2,
-      "detail": "spi.open(configuration[, callback])",
-      "documentation": "* `configuration` {Object}\n  * `device` {string} The specified path for `spidev`. (only on Linux)\n  * `bus` {number} The specified bus number. (NuttX and TizenRT only)\n  * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.\n  * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.\n  * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.\n  * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.\n  * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.\n  * `loopback` {boolean} Using loopback. **Default:** `false`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n* Returns: {SPIBus}.\n\nOpens an SPI device with the specified configuration.\n",
+      "detail": "spi.open(configuration, callback)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} The specified path for `spidev`. (only on Linux)\n  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)\n  * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.\n  * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.\n  * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.\n  * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.\n  * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.\n  * `loopback` {boolean} Using loopback. **Default:** `false`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n  * `spibus` {Object} An instance of SPIBus.\n* Returns: {Object} An instance of SPIBus.\n\nOpens an SPI device with the specified configuration.\n",
       "insertText": "open"
+    },
+    {
+      "label": "openSync",
+      "kind": 2,
+      "detail": "spi.openSync(configuration)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} The specified path for `spidev`. (only on Linux)\n  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)\n  * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.\n  * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.\n  * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.\n  * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.\n  * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.\n  * `loopback` {boolean} Using loopback. **Default:** `false`.\n* Returns: {Object} An instance of SPIBus.\n\nOpens an SPI device with the specified configuration.\n",
+      "insertText": "openSync"
     },
     {
       "label": "transfer",
       "kind": 2,
-      "detail": "spibus.transfer(txBuffer, rxBuffer[, callback])",
-      "documentation": "* `txBuffer` {Array|Buffer}.\n* `rxBuffer` {Array|Buffer}.\n* `callback` {Function}.\n  * `err` {Error|null}.\n\nWrites and reads data from the SPI device asynchronously.\nThe `txBuffer` and `rxBuffer` must have equal length.\n",
+      "detail": "spibus.transfer(txBuffer, [, callback])",
+      "documentation": "* `txBuffer` {Array|Buffer}.\n* `callback` {Function}.\n  * `err` {Error|null}.\n  * `rxBuffer` {Array}.\n\nWrites and reads data from the SPI device asynchronously.\nThe `txBuffer` and `rxBuffer` length is equal.\n",
       "insertText": "transfer"
     },
     {
       "label": "transferSync",
       "kind": 2,
-      "detail": "spibus.transferSync(txBuffer, rxBuffer)",
-      "documentation": "* `txBuffer` {Array|Buffer}.\n* `rxBuffer` {Array|Buffer}.\n\nWrites and reads data from the SPI device synchronously.\nThe `txBuffer` and `rxBuffer` must have equal length.\n",
+      "detail": "spibus.transferSync(txBuffer)",
+      "documentation": "* `txBuffer` {Array|Buffer}.\n* Returns: `rxBuffer` {Array}.\n\nWrites and reads data from the SPI device synchronously.\nThe `txBuffer` and `rxBuffer` length is equal.\n",
       "insertText": "transferSync"
     },
     {
@@ -1169,6 +1308,29 @@
       "insertText": "write"
     }
   ],
+  "tls": [
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "tls.connect(options[,callback])",
+      "documentation": "- `options` {Object}\n    - `host` {string} Host the client should connect to, defaults to 'localhost'.\n    - `port` {number} Port the client should connect to.\n    - `socket` {stream.Duplex} Optional, typically an instance of `net.Socket`. If this options is specified, host and port are ignored. The user passing the options is responsible for it connecting to the server. `tls.connect` won't call `net.connect` on it.\n    - `rejectUnauthorized` {boolean} Whether the server certificate should be verified against the list of supplied CAs. An `error` event is emitted if verifications fails; `err.code` contains the MbedTLS error code. Defaults to `false`. NOT READY\n    - `servername` {string} Server name for the SNI (Server name Indication) TLS extension. NOT READY\n    - `session` {Buffer} A `Buffer` containing a TLS session. NOT READY\n    - `minDHSize` {number} The minimum size of the DH parameter in bits to accept a TLS connection. If a server offers a DH parameter with a size less than specified, the TLS connection is destroyed and an error is thrown. Defaults to `1024`.\n    - `lookup` {Function} Custom lookup. Defaults to `dns.lookup()`.\n- `callback` {Function} The callback function will be added as a listener for the `secureConnect` event.\n\nReturns a `tls.TLSSocket` object.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "tls.connect(port[,host][,options][,callback])",
+      "documentation": "- `port` {number} Port the client should connect to.\n- `host` {string} Host the client should connect to, defaults to 'localhost'.\n- `options` {Object} See `tls.connect()`.\n- `callback` {Function} See `tls.connect()`.\n\nSame as tls.connect() except that port and host can be provided as arguments instead of options.\nA port or host option, if specified, will take precedence over any port or host argument.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "address",
+      "kind": 2,
+      "detail": "tlsSocket.address()",
+      "documentation": "Returns an object containing the bound address, family name, and port of the socket.`{port: 443, family: 'IPv4', address: '127.0.0.1'}`\n\n### tlsSocket.authorizationError\nReturns the reason why the peer's certificate has not been verified.\n\n### tlsSocket.authorized\nReturns `true` if the peer certificate was signed by one of the CAs specified when creating the `tls.TLSSocket` instance, otherwise false.\n\n### tlsSocket.encrypted\nAlways returns `true`, can be used to distinguish TLS sockets from regular `net.Socket`s.\n",
+      "insertText": "address"
+    }
+  ],
   "timers": [
     {
       "label": "setTimeout",
@@ -1210,16 +1372,23 @@
     {
       "label": "open",
       "kind": 2,
-      "detail": "uart.open(configuration[, callback])",
-      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration.\n  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.\n  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n* Returns: {UARTPort}.\n\nOpens an UARTPort object with the specified configuration.\n\nThe `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].\n\nThe `dataBits` must be equal to one of these values: [5, 6, 7, 8].\n\nOn NuttX, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.\n\nYou can read more information about the usage of the UART on stm32f4-discovery board: [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart).\n",
+      "detail": "uart.open(configuration, callback)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration. The specified device path.(Linux, Nuttx and TizenRT only)\n  * `port` {number} Mandatory configuration. The specified port number. (Tizen only)\n  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.\n  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.\n* `callback` {Function}.\n  * `err` {Error|null}.\n* Returns: {UARTPort}.\n\nOpens an UARTPort object with the specified configuration.\n\nThe `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].\n\nThe `dataBits` must be equal to one of these values: [5, 6, 7, 8].\n\nOn NuttX, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.\n\nYou can read more information about the usage of the UART on stm32f4-discovery board: [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart).\n",
       "insertText": "open"
     },
     {
-      "label": "",
+      "label": "openSync",
       "kind": 2,
-      "detail": "uartport.write(data[, callback]).",
+      "detail": "uart.openSync(configuration)",
+      "documentation": "* `configuration` {Object}\n  * `device` {string} Mandatory configuration. The specified device path. (Linux, Nuttx and TizenRT only)\n  * `port` {number} Mandatory configuration. The specified port number. (Tizen only)\n  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.\n  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.\n* Returns: {UARTPort}.\n\nOpens an UARTPort object with the specified configuration.\n",
+      "insertText": "openSync"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "uartport.write(data, callback).",
       "documentation": "* `data` {string}.\n* `callback` {Function}.\n  * `err` {Error|null}.\n\nWrites the given `data` to the UART device asynchronously.\n",
-      "insertText": ""
+      "insertText": "write"
     },
     {
       "label": "writeSync",
@@ -1232,15 +1401,73 @@
       "label": "close",
       "kind": 2,
       "detail": "uartport.close([callback])",
-      "documentation": "* `callback` {Function}.\n  * `err` {Error|null)}.\n\nCloses the UART device asynchronously.\n\nOn NuttX/STM32F4Discovery, Uart.close() blocks after close().\nIt seems that poll() does not work properly on NuttX for some cases.\n",
+      "documentation": "* `callback` {Function}.\n  * `err` {Error|null)}.\n\nCloses the UART device asynchronously.\n",
       "insertText": "close"
     },
     {
       "label": "closeSync",
       "kind": 2,
       "detail": "uartport.closeSync()",
-      "documentation": "\nCloses the UART device synchronously.\n\nOn NuttX/STM32F4Discovery, Uart.close() blocks after close().\nIt seems that poll() does not work properly on NuttX for some cases.\n",
+      "documentation": "\nCloses the UART device synchronously.\n",
       "insertText": "closeSync"
+    }
+  ],
+  "websocket": [
+    {
+      "label": "Server",
+      "kind": 2,
+      "detail": "Websocket.Server(options[, callback])",
+      "documentation": "Create a new server instance. One of `port` or `server` must be provided or an error is thrown. An HTTP server is automatically created, started, and used if `port` is set. If `secure` is set TLS server is automatically created, started and used. The `tls` module is required or an error is thrown. To use an external HTTP/S server instead, specify only `server`. In this case the HTTP/S server must be started manually.\n\n- `options` {Object}\n  - `port` {Number}\n  - `host` {String} Optional. Defaults to `localhost`.\n  - `server` {Object} Optional.\n  - `path` {String} Optional. Defaults to `/`.\n  - `secure` {Boolean} Optional.\n  - `key` {String} Optional. (Required on `secure` server)\n  - `cert` {String} Optional. (Required on `secure` server)\n- `callback` {Function} Optional. The function which will be executed when the client successfully connected to the server.\n\nEmits a `connection` event when the connection is established.\n",
+      "insertText": "Server"
+    },
+    {
+      "label": "address",
+      "kind": 2,
+      "detail": "server.address()",
+      "documentation": "\nReturns an object with `port`, `family`, and `address` properties specifying\nthe bound address, the family name, and port of the server.\n",
+      "insertText": "address"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "server.close([reason], [code])",
+      "documentation": "You can specify a close message and a close code as well. More info on them can be read here: [https://tools.ietf.org/html/rfc6455#section-7.4.1](https://tools.ietf.org/html/rfc6455#section-7.4.1 \"The WebSocket Protocol Status Codes\")\n\n- `reason` {String} Optional. Defaults to `Connection successfully closed`.\n- `code` {Number} Optional. Defaults to `1000`.\n\nClose the Websocket server, terminate all clients and emit the `close` event.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "broadcast",
+      "kind": 2,
+      "detail": "server.broadcast(message [, options])",
+      "documentation": "You can specify a message that will be sent to every clients.\nThe `mask` will specify whether the data frame should be masked or not.\nThe `binary` will specify that if the data frame mode should be text or binary, default to text.\nMore info on them can be read here: [https://tools.ietf.org/html/rfc6455#section-5.6](https://tools.ietf.org/html/rfc6455#section-5.6 \"The WebSocket Protocol Data Frames\")\n\n- `message` {String}\n- `options` {Object} Optional.\n  - `mask` {Boolean} Optional. Defaults to `true`.\n  - `binary` {Boolean} Optional. Defaults to `false`.\n\nSend message to all clients.\n",
+      "insertText": "broadcast"
+    },
+    {
+      "label": "connect",
+      "kind": 2,
+      "detail": "websocket.connect([host], [port], [path], [callback])",
+      "documentation": "Connects to a `websocket` server, host names can be prefixed with `ws://` or `wss://`.\n- `host` {string} Optional. Defaults to `localhost`.\n- `port` {number} Optional. Defaults to `80` if the `host` begins with `ws://` or `443` with `wss://`.\n- `path` {Buffer | string} Optional. Defaults to `/`. If given, the client connects to that `endpoint`.\n- `callback` {function} Optional. The function which will be executed when the client successfully connected to the server.\n\nEmits an `open` event when the connection is established.\n",
+      "insertText": "connect"
+    },
+    {
+      "label": "close",
+      "kind": 2,
+      "detail": "websocket.close([message], [code], [callback])",
+      "documentation": "Closes the `websocket` connection with the server. You can specify a close `message` and a close `code` as well. More info on them can be read here: https://tools.ietf.org/html/rfc6455#section-7.4.1\n- `message` {Buffer | string} Optional. This `message` is sent to the server as a close message, mostly for explaining the status `code`.\n- `code` {number} Optional. The `code` indicates the reason why the `websocket` connection was closed. Defaults to 1000.\n- `callback` {function} Optional. The function will be executed when the `websocket` connection is closed.\n\nEmits a `close` event when the connection is closed.\n",
+      "insertText": "close"
+    },
+    {
+      "label": "ping",
+      "kind": 2,
+      "detail": "websocket.ping([message], [mask], [callback])",
+      "documentation": "Sends a `ping` to the server. If there is no response in the next 30 seconds, the connection is closed.\n- `message` {Buffer | string} Optional. The `message` is used to identify the `ping` frame.\n- `mask` {boolean} Optional. Defaults to `false`. Sets to mask the `message` or not.\n- `callback` {function} Optional. The function to be executed when the server sends a response to the `ping`.\n",
+      "insertText": "ping"
+    },
+    {
+      "label": "send",
+      "kind": 2,
+      "detail": "websocket.send([message], [options], [callback])",
+      "documentation": "Sends data to the server. It can be either `binary` or `utf8` data.\n- `message` {Buffer | string} The `message` to be sent to the server.\n- `options` {Object}\n  - `mask` {boolean} Optional. Defaults to `false`. If set, the `message` is masked.\n  - `binary` {boolean} Optional. Defaults to `false`. If set, the `message` is expected to be binary data.\n- `callback` {function} Optional. The function to be executed when the `frame` is successfully sent.\n",
+      "insertText": "send"
     }
   ]
 }
