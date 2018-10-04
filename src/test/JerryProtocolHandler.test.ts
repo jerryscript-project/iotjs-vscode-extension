@@ -84,6 +84,7 @@ suite('JerryProtocolHandler', () => {
   suite('onByteCodeCP', () => {
     const delegate = {
       onScriptParsed: sinon.spy(),
+      onError: sinon.spy()
     };
     let handler: JerryDebugProtocolHandler;
 
@@ -92,12 +93,14 @@ suite('JerryProtocolHandler', () => {
       handler = new JerryDebugProtocolHandler(delegate);
       const array = Uint8Array.from([SP.SERVER.JERRY_DEBUGGER_BYTE_CODE_CP]);
       assert.throws(() => handler.onByteCodeCP(array));
+      assert(delegate.onError.notCalled);
     });
   });
 
   suite('onSourceCode', () => {
     const delegate = {
       onScriptParsed: sinon.spy(),
+      onError: sinon.spy()
     };
     let handler: JerryDebugProtocolHandler;
 
@@ -108,6 +111,7 @@ suite('JerryProtocolHandler', () => {
       // code = 'abc'
       handler.onSourceCode(array);
       assert(delegate.onScriptParsed.notCalled);
+      assert(delegate.onError.notCalled);
     });
 
     test('immediately calls scriptParsed from END message', () => {
@@ -123,6 +127,7 @@ suite('JerryProtocolHandler', () => {
       assert.strictEqual(data.lineCount, 1);
       assert.strictEqual(data.name, '');
       assert.strictEqual(handler.getSource(1), 'abc');
+      assert(delegate.onError.notCalled);
     });
 
     test('concatenates multiple SOURCE messages with END message', () => {
@@ -140,12 +145,14 @@ suite('JerryProtocolHandler', () => {
       assert(delegate.onScriptParsed.calledOnce);
       // 'abcabcabc' + 'abc' = 'abcabcabcabc'
       assert.strictEqual(handler.getSource(1), 'abcabcabcabc');
+      assert(delegate.onError.notCalled);
     });
   });
 
   suite('onSourceCodeName', () => {
     const delegate = {
       onScriptParsed: sinon.spy(),
+      onError: sinon.spy()
     };
     let handler: JerryDebugProtocolHandler;
 
@@ -161,6 +168,7 @@ suite('JerryProtocolHandler', () => {
       assert(delegate.onScriptParsed.calledOnce);
       const data = delegate.onScriptParsed.args[0][0];
       assert.strictEqual(data.name, 'foo');
+      assert(delegate.onError.notCalled);
     });
 
     test('concatenates multiple NAME messages with END message', () => {
@@ -179,6 +187,7 @@ suite('JerryProtocolHandler', () => {
       const data = delegate.onScriptParsed.args[0][0];
       // 'foo' + 'foo' = 'foofoo'
       assert.strictEqual(data.name, 'foofoo');
+      assert(delegate.onError.notCalled);
     });
   });
 
@@ -210,10 +219,11 @@ suite('JerryProtocolHandler', () => {
     test('calls delegate function if available', () => {
       const delegate = {
         onBreakpointHit: sinon.spy(),
+        onError: sinon.spy()
       };
       const handler = new JerryDebugProtocolHandler(delegate);
 
-      let array = Uint8Array.from([0, 128, 2, 1, 1]);
+      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -227,18 +237,20 @@ suite('JerryProtocolHandler', () => {
       assert(delegate.onBreakpointHit.notCalled);
       handler.onBreakpointHit(array);
       assert(delegate.onBreakpointHit.calledOnce);
+      assert(delegate.onError.notCalled);
     });
   });
 
   suite('onBacktrace', () => {
     const delegate = {
       onBacktrace: sinon.spy(),
+      onError: sinon.spy()
     };
     const handler = new JerryDebugProtocolHandler(delegate);
 
     test('calls delegate function immediately on END event', () => {
       delegate.onBacktrace.resetHistory();
-      let array = Uint8Array.from([0, 128, 2, 1, 1]);
+      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -257,11 +269,13 @@ suite('JerryProtocolHandler', () => {
       assert(delegate.onBacktrace.notCalled);
       handler.onBacktrace(array);
       assert(delegate.onBacktrace.calledOnce);
+      assert(delegate.onError.notCalled);
+
     });
 
     test('calls delegate function only on END event', () => {
       delegate.onBacktrace.resetHistory();
-      let array = Uint8Array.from([0, 128, 2, 1, 1]);
+      let array = Uint8Array.from([0, 128, 2, 1, SP.JERRY_DEBUGGER_VERSION]);
       handler.onConfiguration(array);
       array = encodeArray(SP.SERVER.JERRY_DEBUGGER_SOURCE_CODE_END, 'code');
       handler.onSourceCode(array);
@@ -282,6 +296,7 @@ suite('JerryProtocolHandler', () => {
       assert(delegate.onBacktrace.notCalled);
       handler.onBacktrace(array);
       assert(delegate.onBacktrace.calledOnce);
+      assert(delegate.onError.notCalled);
     });
   });
 
@@ -289,6 +304,7 @@ suite('JerryProtocolHandler', () => {
     test('handles a single END packet', () => {
       const delegate = {
         onEvalResult: sinon.spy(),
+        onError: sinon.spy()
       };
       const handler = new JerryDebugProtocolHandler(delegate);
       (handler as any).evalResultData = undefined;
@@ -300,11 +316,13 @@ suite('JerryProtocolHandler', () => {
       assert.strictEqual(delegate.onEvalResult.args[0][1], 'ab');
       assert.strictEqual((handler as any).evalResultData, undefined);
       assert.strictEqual((handler as any).evalsPending, 0);
+      assert(delegate.onError.notCalled);
     });
 
     test('handles a partial packet plus an END packet', () => {
       const delegate = {
         onEvalResult: sinon.spy(),
+        onError: sinon.spy()
       };
       const handler = new JerryDebugProtocolHandler(delegate);
       (handler as any).evalResultData = undefined;
@@ -318,6 +336,7 @@ suite('JerryProtocolHandler', () => {
       assert.strictEqual(delegate.onEvalResult.args[0][1], 'abab');
       assert.strictEqual((handler as any).evalResultData, undefined);
       assert.strictEqual((handler as any).evalsPending, 0);
+      assert(delegate.onError.notCalled);
     });
   });
 
