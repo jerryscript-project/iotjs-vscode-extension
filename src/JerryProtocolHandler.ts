@@ -285,15 +285,15 @@ export class JerryDebugProtocolHandler {
 
   public onConfiguration(data: Uint8Array): void {
     this.logPacket('Configuration');
-    if (data.length < 5) {
+    if (data.length < 8) {
       this.abort('configuration message wrong size');
       return;
     }
 
-    this.maxMessageSize = data[1];
-    this.byteConfig.cpointerSize = data[2];
-    this.byteConfig.littleEndian = Boolean(data[3]);
-    this.version = data[4];
+    this.maxMessageSize = data[6];
+    this.byteConfig.cpointerSize = data[7];
+    this.byteConfig.littleEndian = Boolean(data[1]);
+    this.version = this.decodeMessage('I', data, 2)[0];
 
     if (this.byteConfig.cpointerSize !== 2 && this.byteConfig.cpointerSize !== 4) {
       this.abort('compressed pointer must be 2 or 4 bytes long');

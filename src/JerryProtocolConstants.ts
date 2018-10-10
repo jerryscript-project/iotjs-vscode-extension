@@ -17,7 +17,7 @@
 'use strict';
 
 // Expected JerryScript debugger protocol version.
-export const JERRY_DEBUGGER_VERSION = 5;
+export const JERRY_DEBUGGER_VERSION = 6;
 
 // Packages sent from the server to the client.
 export enum SERVER {
