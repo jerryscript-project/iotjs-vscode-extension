@@ -17,7 +17,7 @@
 'use strict';
 
 import {
-  DebugSession, InitializedEvent, OutputEvent, Thread, Source,
+  DebugSession, Handles, InitializedEvent, OutputEvent, Thread, Scope, Source,
   StoppedEvent, StackFrame, TerminatedEvent, Event, ErrorDestination
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
@@ -30,7 +30,7 @@ import { IAttachRequestArguments, ILaunchRequestArguments, SourceSendingOptions,
 import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
-  JerryMessageExceptionHit, JerryMessageBreakpointHit, JerryBacktraceResult
+  JerryMessageExceptionHit, JerryMessageBreakpointHit, JerryBacktraceResult, JerryScopeVariable, JerryScopeChain
 } from './JerryProtocolHandler';
 import { EVAL_RESULT_SUBTYPE, CLIENT as CLIENT_PACKAGE } from './JerryProtocolConstants';
 import { Breakpoint } from './JerryBreakpoints';
@@ -48,6 +48,7 @@ class IotjsDebugSession extends DebugSession {
   private _debuggerClient: JerryDebuggerClient;
   private _protocolhandler: JerryDebugProtocolHandler;
   private _sourceSendingOptions: SourceSendingOptions;
+  private _variableHandles = new Handles<string>();
 
   public constructor() {
     super();
@@ -446,6 +447,55 @@ class IotjsDebugSession extends DebugSession {
 
       this.sendResponse(response);
     } catch (error) {
+      this.log(error.message, LOG_LEVEL.ERROR);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
+  }
+
+
+  protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    try {
+      const scopesArray: Array<JerryScopeChain> = await this._protocolhandler.requestScopes();
+      const scopes = new Array<Scope>();
+
+      for (const scope of scopesArray) {
+        scopes.push(new Scope(scope.name,
+                              this._variableHandles.create(scope.variablesReference.toString()),
+                              scope.expensive));
+      }
+
+      response.body = {
+        scopes: scopes
+      };
+
+      this.sendResponse(response);
+    }  catch (error) {
+      this.log(error.message, LOG_LEVEL.ERROR);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
+  }
+
+  protected async variablesRequest(response: DebugProtocol.VariablesResponse,
+                                   args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    try {
+      const variables = new Array<DebugProtocol.Variable>();
+      const id = this._variableHandles.get(args.variablesReference);
+      const scopeVariables: Array<JerryScopeVariable> = await this._protocolhandler.requestVariables(Number(id));
+
+      for (const variable of scopeVariables) {
+        variables.push({name: variable.name,
+                        type: variable.type,
+                        value: variable.value,
+                        variablesReference: 0});
+      }
+
+      response.body = {
+        variables: variables
+      };
+      this.sendResponse(response);
+    }  catch (error) {
       this.log(error.message, LOG_LEVEL.ERROR);
       this.sendErrorResponse(response, 0, (<Error>error).message);
     }

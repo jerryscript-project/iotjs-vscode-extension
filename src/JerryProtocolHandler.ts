@@ -123,6 +123,18 @@ class PendingRequest {
   }
 }
 
+export interface JerryScopeChain {
+  name: string;
+  variablesReference: number;
+  expensive: boolean;
+}
+
+export interface JerryScopeVariable {
+  name: string;
+  type: string;
+  value: string;
+}
+
 // abstracts away the details of the protocol
 export class JerryDebugProtocolHandler {
   public debuggerClient?: JerryDebuggerClient;
@@ -149,6 +161,8 @@ export class JerryDebugProtocolHandler {
   private functions: FunctionMap = {};
   private newFunctions: FunctionMap = {};
   private backtraceData: JerryBacktraceResult = {totalFrames : 0, backtrace: []};
+  private scopeMessage?: Array<number> = [];
+  private scopeVariableMessage?: string = '';
 
   private nextScriptID: number = 1;
   private exceptionData?: Uint8Array;
@@ -197,7 +211,11 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_BACKTRACE_END]: this.onBacktrace,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT]: this.onEvalResult,
       [SP.SERVER.JERRY_DEBUGGER_EVAL_RESULT_END]: this.onEvalResult,
-      [SP.SERVER.JERRY_DEBUGGER_WAIT_FOR_SOURCE]: this.onWaitForSource
+      [SP.SERVER.JERRY_DEBUGGER_WAIT_FOR_SOURCE]: this.onWaitForSource,
+      [SP.SERVER.JERRY_DEBUGGER_SCOPE_CHAIN]: this.onScopeChain,
+      [SP.SERVER.JERRY_DEBUGGER_SCOPE_CHAIN_END]: this.onScopeChainEnd,
+      [SP.SERVER.JERRY_DEBUGGER_SCOPE_VARIABLES]: this.onScopeVariables,
+      [SP.SERVER.JERRY_DEBUGGER_SCOPE_VARIABLES_END]: this.onScopeVariablesEnd
     };
 
     this.requestQueue = [];
@@ -586,6 +604,132 @@ export class JerryDebugProtocolHandler {
     return this.backtraceData;
   }
 
+  public onScopeChain(data: Uint8Array): void {
+    this.logPacket('ScopeChain');
+
+    for (let i = 1; i < data.byteLength; i++) {
+      this.scopeMessage.push(data[i]);
+    }
+  }
+
+  public onScopeChainEnd(data: Uint8Array): Array<JerryScopeChain> {
+    this.logPacket('ScopeChainEnd');
+
+    for (let i = 1; i < data.byteLength; i++) {
+      this.scopeMessage.push(data[i]);
+    }
+
+    const scopes: Array<JerryScopeChain> = [];
+    for (let i = 0; i < this.scopeMessage.length; i++) {
+      switch (this.scopeMessage[i]) {
+        case SP.JERRY_DEBUGGER_SCOPE_TYPE.JERRY_DEBUGGER_SCOPE_WITH: {
+          scopes.push({name: 'with', variablesReference: i, expensive: true});
+          break;
+        }
+        case SP.JERRY_DEBUGGER_SCOPE_TYPE.JERRY_DEBUGGER_SCOPE_LOCAL: {
+          scopes.push({name: 'local', variablesReference: i, expensive: true});
+          break;
+        }
+        case SP.JERRY_DEBUGGER_SCOPE_TYPE.JERRY_DEBUGGER_SCOPE_CLOSURE: {
+          scopes.push({name: 'closure', variablesReference: i, expensive: true});
+          break;
+        }
+        case SP.JERRY_DEBUGGER_SCOPE_TYPE.JERRY_DEBUGGER_SCOPE_GLOBAL: {
+          scopes.push({name: 'global', variablesReference: i, expensive: true});
+          break;
+        }
+        case SP.JERRY_DEBUGGER_SCOPE_TYPE.JERRY_DEBUGGER_SCOPE_NON_CLOSURE: {
+          scopes.push({name: 'catch', variablesReference: i, expensive: true});
+          break;
+        }
+        default: {
+          throw new Error('Invalid scope chain type!');
+        }
+      }
+    }
+    this.scopeMessage = [];
+
+    return scopes;
+  }
+
+  public onScopeVariables(data: Uint8Array): void {
+    this.logPacket('ScopeVariables');
+    for (let i = 1; i < data.byteLength; i++) {
+      this.scopeVariableMessage += String.fromCharCode(data[i]);
+    }
+  }
+
+  public onScopeVariablesEnd(data: Uint8Array): Array<JerryScopeVariable> {
+    this.logPacket('ScopeVariablesEnd');
+
+    for (let i = 1; i < data.byteLength; i++) {
+      this.scopeVariableMessage += String.fromCharCode(data[i]);
+    }
+
+    let buff_pos = 0;
+    const scopeVariablesArray: Array<JerryScopeVariable> = [];
+
+    while (buff_pos < this.scopeVariableMessage.length) {
+      let scopeVariable: JerryScopeVariable =  {name: '', type: '', value: ''};
+
+      // Process name.
+      const name_length = this.scopeVariableMessage[buff_pos++].charCodeAt(0);
+      scopeVariable.name = this.scopeVariableMessage.substring(buff_pos, buff_pos + name_length);
+
+      buff_pos += name_length;
+
+      // Process type
+      const value_type: SP.JERRY_DEBUGGER_SCOPE_VARIABLES = this.scopeVariableMessage[buff_pos++].charCodeAt(0);
+      const value_length = this.scopeVariableMessage[buff_pos++].charCodeAt(0);
+
+      scopeVariable.value = this.scopeVariableMessage.substring(buff_pos, buff_pos + value_length);
+      buff_pos += value_length;
+
+      switch (value_type) {
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_UNDEFINED): {
+          scopeVariable.type = 'undefined';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_NULL): {
+          scopeVariable.type = 'Null';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_BOOLEAN): {
+          scopeVariable.type = 'Boolean';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_NUMBER): {
+          scopeVariable.type = 'Number';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_STRING): {
+          scopeVariable.type = 'String';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_FUNCTION): {
+          scopeVariable.type = 'Function';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_ARRAY): {
+          scopeVariable.type = 'Array';
+          scopeVariable.value = '[' + scopeVariable.value + ']';
+          break;
+        }
+        case (SP.JERRY_DEBUGGER_SCOPE_VARIABLES.JERRY_DEBUGGER_VALUE_OBJECT): {
+          scopeVariable.type = 'Object';
+          break;
+        }
+        default: {
+          throw new Error('Invalid scope variable type!');
+        }
+      }
+      scopeVariablesArray.push(scopeVariable);
+    }
+    this.scopeVariableMessage = '';
+
+    return scopeVariablesArray;
+  }
+
   public onEvalResult(data: Uint8Array): JerryEvalResult {
     this.logPacket('Eval Result');
 
@@ -774,6 +918,26 @@ export class JerryDebugProtocolHandler {
                                            start,
                                            start + levels,
                                            1]));
+  }
+
+  public requestScopes(): Promise<any> {
+    if (!this.lastBreakpointHit) {
+      return Promise.reject(new Error('scope chain not allowed while app running'));
+    }
+
+    return this.sendRequest(encodeMessage(this.byteConfig, 'B',
+                                          [SP.CLIENT.JERRY_DEBUGGER_GET_SCOPE_CHAIN]));
+  }
+
+  public requestVariables(level?: number): Promise<any> {
+    if (!this.lastBreakpointHit) {
+      return Promise.reject(new Error('scope variables not allowed while app running'));
+    }
+
+    return this.sendRequest(encodeMessage(this.byteConfig, 'BI',
+                                          [SP.CLIENT.JERRY_DEBUGGER_GET_SCOPE_VARIABLES,
+                                          level]));
+
   }
 
   logPacket(description: string, ignorable: boolean = false) {
