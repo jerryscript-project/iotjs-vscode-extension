@@ -219,9 +219,6 @@ class IotjsDebugSession extends DebugSession {
     .catch(error => {
       this.log(error.message, LOG_LEVEL.ERROR);
       this.sendErrorResponse(response, error);
-    })
-    .then(() => {
-      this.sendEvent(new InitializedEvent());
     });
   }
 
@@ -312,13 +309,13 @@ class IotjsDebugSession extends DebugSession {
         }
       }));
 
-      // Get the persists breakpoints.
+      // Get the persisted breakpoints.
       const newBreakpointsLines: number[] = newBreakpoints.map(b => b.line);
       const persistingBreakpoints: TemporaryBreakpoint[] = vscodeBreakpoints
                                     .filter(b => newBreakpointsLines.indexOf(b.line) === -1)
                                     .map(b => ({verified: true, line: b.line}));
 
-      // Get the removalbe breakpoints.
+      // Get the removable breakpoints.
       const vscodeBreakpointsLines: number[] = vscodeBreakpoints.map(b => b.line);
       const removeBps: Breakpoint[] = activeBps.filter(b => vscodeBreakpointsLines.indexOf(b.line) === -1);
 
@@ -368,7 +365,7 @@ class IotjsDebugSession extends DebugSession {
           }))
         ];
 
-        // Get the persists breakpoints.
+        // Get the persisted breakpoints.
         const possibleFBs = this._protocolhandler.getPossibleFunctionBreakpointsByScriptId(scriptId);
         persistingFBreakpoints = [
           ...persistingFBreakpoints,
@@ -378,7 +375,7 @@ class IotjsDebugSession extends DebugSession {
           }).map(b => <TemporaryBreakpoint>{verified: true, line: b.line})
         ];
 
-        // Get the removalbe breakpoints.
+        // Get the removable breakpoints.
         const activeFBs: Breakpoint[] = this._protocolhandler.getActiveFunctionBreakpointsByScriptId(scriptId);
         const removeBps: Breakpoint[] = activeFBs.filter(b => {
           return vscodeFunctionBreakpointNames.indexOf(b.func.name) === -1;
@@ -596,6 +593,7 @@ class IotjsDebugSession extends DebugSession {
       } else {
         write(src);
       }
+      this.sendEvent(new InitializedEvent());
     }
   }
 
