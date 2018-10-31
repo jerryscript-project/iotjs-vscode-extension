@@ -82,6 +82,7 @@ class IotjsDebugSession extends DebugSession {
     response.body.supportsStepBack = false;
     response.body.supportsRestartRequest = true;
     response.body.supportsDelayedStackTraceLoading = true;
+    response.body.supportsSetVariable = true;
 
     this._sourceSendingOptions = <SourceSendingOptions>{
       contextReset: false,
@@ -409,7 +410,7 @@ class IotjsDebugSession extends DebugSession {
     response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments
   ): Promise<void> {
     try {
-      const result: JerryEvalResult = await this._protocolhandler.evaluate(args.expression);
+      const result: JerryEvalResult = await this._protocolhandler.evaluate(args.expression, 0);
       const value: string = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK
                             ? result.value
                             : 'Evaluate Error';
@@ -486,6 +487,7 @@ class IotjsDebugSession extends DebugSession {
 
       for (const variable of scopeVariables) {
         variables.push({name: variable.name,
+                        evaluateName: variable.name,
                         type: variable.type,
                         value: variable.value,
                         variablesReference: 0});
@@ -493,6 +495,28 @@ class IotjsDebugSession extends DebugSession {
 
       response.body = {
         variables: variables
+      };
+      this.sendResponse(response);
+    }  catch (error) {
+      this.log(error.message, LOG_LEVEL.ERROR);
+      this.sendErrorResponse(response, 0, (<Error>error).message);
+    }
+  }
+
+  protected async setVariableRequest(response: DebugProtocol.SetVariableResponse,
+                                     args: DebugProtocol.SetVariableArguments
+  ): Promise <void> {
+    try {
+      const expression = args.name + '=' + args.value;
+      const scope_index = Number(this._variableHandles.get(args.variablesReference));
+      const result: JerryEvalResult = await this._protocolhandler.evaluate(expression, scope_index);
+      const value: string = result.subtype === EVAL_RESULT_SUBTYPE.JERRY_DEBUGGER_EVAL_OK
+                            ? result.value
+                            : 'Evaluate Error';
+
+      response.body = {
+        value: value,
+        variablesReference: 0
       };
       this.sendResponse(response);
     }  catch (error) {

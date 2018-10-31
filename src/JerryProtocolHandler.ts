@@ -832,7 +832,7 @@ export class JerryDebugProtocolHandler {
     return bps.length ? bps.filter(b => b.func.name !== '') : [];
   }
 
-  public evaluate(expression: string): Promise<any> {
+  public evaluate(expression: string, index: number): Promise<any> {
     if (!this.lastBreakpointHit) {
       return Promise.reject(new Error('attempted eval while not at breakpoint'));
     }
@@ -840,11 +840,21 @@ export class JerryDebugProtocolHandler {
     this.evalsPending++;
 
     // send an _EVAL message prefixed with the byte length, followed by _EVAL_PARTs if necessary
-    const array = stringToCesu8(SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_EVAL + expression, 1 + 4, this.byteConfig);
+    const header_size = 5; // message type + code length
+    const index_size = 4; // length of scope chain index
+    const array = stringToCesu8(SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_EVAL + expression,
+                                header_size + index_size,
+                                this.byteConfig);
     const arrayLength = array.byteLength;
-    const byteLength = arrayLength - 1 - 4;
+    const byteLength = arrayLength - header_size;
     array[0] = SP.CLIENT.JERRY_DEBUGGER_EVAL;
     setUint32(this.byteConfig.littleEndian, array, 1, byteLength);
+
+    if (index < 0 || index > 65535) {
+      throw new Error('Invalid scope chain index');
+    }
+
+    setUint32(this.byteConfig.littleEndian, array, header_size, index);
 
     let offset = 0;
     let request: Promise<any> = null;
