@@ -454,11 +454,17 @@ suite('JerryProtocolHandler', () => {
       };
       (handler as any).maxMessageSize = 16;
       (handler as any).debuggerClient = debugClient;
-      handler.evaluate('foo');
+      handler.evaluate('foo', 0);
       assert(debugClient.send.calledOnce);
+      const expression_length = [8, 0, 0, 0]; // length of chain index + eval subtype + length of code (4 + 1 + 3)
+      const scope_chain_index = [0, 0, 0, 0];
+      // chain index + eval subtype + code
+      const expression = [...scope_chain_index,
+                          SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_EVAL.charCodeAt(0),
+                          'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0)];
+
       assert.deepStrictEqual(debugClient.send.args[0][0], Uint8Array.from([
-        SP.CLIENT.JERRY_DEBUGGER_EVAL, 4, 0, 0, 0, 0,
-        'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0),
+        SP.CLIENT.JERRY_DEBUGGER_EVAL, ...expression_length, ...expression
       ]));
     });
 
@@ -473,17 +479,25 @@ suite('JerryProtocolHandler', () => {
       };
       (handler as any).maxMessageSize = 6;
       (handler as any).debuggerClient = debugClient;
-      handler.evaluate('foobar');
+      handler.evaluate('foobar', 0);
+      const expression_length = [11, 0, 0, 0]; // length of chain index + eval subtype + length of code (4 + 1 + 6)
+      const scope_chain_index = [0, 0, 0, 0];
+
+      // chain index + eval subtype + code
+      const expression = [...scope_chain_index,
+                          SP.EVAL_SUBTYPE.JERRY_DEBUGGER_EVAL_EVAL.charCodeAt(0),
+                          'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0),
+                          'b'.charCodeAt(0), 'a'.charCodeAt(0), 'r'.charCodeAt(0)];
+
       assert(debugClient.send.calledThrice);
       assert.deepStrictEqual(debugClient.send.args[0][0], Uint8Array.from([
-        SP.CLIENT.JERRY_DEBUGGER_EVAL, 7, 0, 0, 0, 0,
+        SP.CLIENT.JERRY_DEBUGGER_EVAL, ...expression_length, expression[0],
       ]));
       assert.deepStrictEqual(debugClient.send.args[1][0], Uint8Array.from([
-        SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, 'f'.charCodeAt(0), 'o'.charCodeAt(0), 'o'.charCodeAt(0),
-        'b'.charCodeAt(0), 'a'.charCodeAt(0),
+        SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, ...expression.slice(1, 6)
       ]));
       assert.deepStrictEqual(debugClient.send.args[2][0], Uint8Array.from([
-        SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, 'r'.charCodeAt(0),
+        SP.CLIENT.JERRY_DEBUGGER_EVAL_PART, ...expression.slice(6, 11)
       ]));
     });
   });
