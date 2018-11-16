@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 0.10.0
+- Added supports for debugging:
+  - Update debugger version to accommodate changes in IoT.js
+  - Support the scope and variables requests
+    - Retrieve the list of variables at the current scope and show them under the variables pane
+  - Support SetVariable request
+    - Set the variable with the given name in the variable container to a new value
+    - Add `copy value`, `copy as expression` and `add to watch` options for variables
+
+- Added features:
+  - Support restart functionality also in IoT.js
+
+- Updates and fixes:
+  - Update the IoT.js module functions
+  - Fix incorrect .vscode directory creation inside Tizen projects
+  - Call InitializedEvent after source is sent to get persisted breakpoints
+
 ## Version 0.9.0
  - Added features:
    - Restart function (only supported with JerryScript yet)
