@@ -28,6 +28,7 @@
     - Set/Remove breakpoints
     - Set/Remove function breakpoints
     - Call stack display
+    - Variables display
     - Watch (evaluate expression)
     - Exception hint
     - Handle source receive from the engine
