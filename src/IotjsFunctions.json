@@ -739,71 +739,106 @@
     {
       "label": "createServer",
       "kind": 2,
-      "detail": "http.createServer([requestListener])",
-      "documentation": "* `requestListener` {Function}\n  * request {http.IncomingMessage}\n  * response {http.ServerResponse}\n* Returns: {http.Server}\n\nThe `requestListener` is a function which is automatically added to the `'request'` event.\n",
+      "detail": "http.createServer([options][, requestListener])",
+      "documentation": "* `options` {Object}\n  * `IncomingMessage` {Function} Specifies the `IncomingMessage` constructor to be used when creating an http incoming message object.\n    Useful when extending the original {http.IncommingMessge}.\n    Default: `http.IncommingMessage`.\n  * `ServerResponse` {Function} Specifies the `ServerResponse` constructor to be used when creating the server response object.\n    Useful when extending the original {http.ServerResponse}.\n    Default: 'http.ServerResponse`.\n* `requestListener` {Function}\n  * `request` {http.IncomingMessage}\n  * `response` {http.ServerResponse}\n* Returns: {http.Server}\n\nThis call only creates the HTTP server instance and does not start the server.\nTo start the server and listen for connections use the `server.listen` method.\n\nIf a server is no longer needed, all request and response streams should be closed and the `server.close` method\nshould be used to stop the server listening for connections.\n\nThe `requestListener` is a function which is automatically added to the `'request'` event of the http server.\n",
       "insertText": "createServer"
     },
     {
       "label": "request",
       "kind": 2,
       "detail": "http.request(options[, callback])",
-      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. Defaults to 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. Defaults to 80.\n  * `method` {string} A string specifying the HTTP request method. Defaults to 'GET'.\n  * `path` {string} Request path. Defaults to '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. Defaults to 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. Defaults to 80.\n  * `method` {string} A string specifying the HTTP request method. Defaults to 'GET'.\n  * `path` {string} Request path. Defaults to '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n\nThe function creates a `http.ClientRequest` instance with the `options` defined.\nThis can be used to get data form a server or to send data for a server.\n\nIn case of data send the `'Content-Length'` header should be specifed so the server can properly handle the request.\n",
       "insertText": "request"
     },
     {
       "label": "get",
       "kind": 2,
       "detail": "http.get(options[, callback])",
-      "documentation": "* `options` {Object}\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n\nSame as `http.request` except that `http.get` automatically call `req.end()` at the end.\n",
+      "documentation": "* `options` {Object}\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n\nSame as `http.request` except that `http.get` automatically calls `request.end()` before returning the `http.ClientRequest`\ninstance thus calling the `write` method on the return value is invalid.\n\nThis method is usefuly when there is no HTTP body to send.\n",
       "insertText": "get"
     },
     {
       "label": "listen",
       "kind": 2,
       "detail": "server.listen(port[, hostname][, backlog][, callback])",
-      "documentation": "* `port` {number}\n* `host` {string}\n* `backlog` {number}\n* `callback` {Function}\n\nWait for new TCP connection with specified port and hostname. If no hostname is provided, server accepts any IP address.\n`backlog` is maximum pending connections. Default backlog length is 511 (not 512).\n`callback` will be called when server has been bound.\n",
+      "documentation": "* `port` {number} Port number to listen on.\n* `host` {string} Host IP or name where the server should listen. Default: `'0.0.0.0'`.\n* `backlog` {number} The number of maximum pending connections. Default backlog length is 511 (not 512).\n* `callback` {Function} Callback called when the `'listening'` event is emitted by the underlying `net.Server`.\n* Returns {http.Server} The same server instance which was used to call the `listen` method.\n\nWait for new TCP connections with specified port and hostname. If no hostname is provided, server listens on all available IP address.\n",
       "insertText": "listen"
     },
     {
       "label": "close",
       "kind": 2,
       "detail": "server.close([callback])",
-      "documentation": "* `callback` {Function}\n\nStop accepting new connection to this server. However, the existing connections are preserved. When server is finally closed after all connections are closed, a callback is called.\n",
+      "documentation": "* `callback` {Function} Function which to be registered for the `'close'` event.\n* Returns {http.Server} The same server instance which was used to call the `close` method.\n\nStop accepting new connections to this server. However, the existing connections are preserved.\nWhen the server is finally closed after all connections was closed, the `'close'` event is triggered.\n\nSee the `'close`' event.\n",
       "insertText": "close"
     },
     {
       "label": "setTimeout",
       "kind": 2,
-      "detail": "server.setTimeout(ms, cb)",
-      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for `'timeout'` event and sets socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provide cb, you should handle the socket's timeout.\n\nDefault timeout for server is 2 minutes.\n",
+      "detail": "server.setTimeout(ms[, callback])",
+      "documentation": "\n* `ms` {number}\n* `callback` {Function} The callback function registered for the `'timeout'` event.\n\nRegisters cb for `'timeout'` event and sets socket's timeout value to ms. This event will be triggered by the underlying socket's `'timeout'` event.\n\nIf `callback` is not provided, the socket will be destroyed automatically after timeout.\nIf the `callback` function is provided, that function should should handle the socket's timeout.\n\nDefault timeout for server is 2 minutes.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "abort",
+      "kind": 2,
+      "detail": "request.abort()",
+      "documentation": "Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.\n",
+      "insertText": "abort"
+    },
+    {
+      "label": "end",
+      "kind": 2,
+      "detail": "request.end([data][, callback])",
+      "documentation": "* `data` {Buffer | string} Data to be sent.\n* `callback` {Function} Callback function invoked when all data is processed.\n\nFinishes sending the request.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the request stream is finished.\n\nThis method must be called to close the request and to make sure all data is sent.\n",
+      "insertText": "end"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "request.setTimeout(ms[, callback])",
+      "documentation": "\n* `ms` {number}\n* `callback` {Function} The callback function registered for the `'timeout'` event.\n\nRegisters `callback` for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's `'timeout'` event.\n\nIf `callback` is not provided, the socket will be destroyed automatically after timeout.\nIf `callback` is provied, the method should handle the socket's timeout.\n",
+      "insertText": "setTimeout"
+    },
+    {
+      "label": "write",
+      "kind": 2,
+      "detail": "request.write(data[, callback])",
+      "documentation": "* `data` {Buffer | string} Data to be sent.\n* `callback` {Function}\n\nSends `data` as a request body. `callback` will be called when data is flushed.\n\n",
+      "insertText": "write"
+    },
+    {
+      "label": "setTimeout",
+      "kind": 2,
+      "detail": "message.setTimeout(ms, cb)",
+      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\n\n## Class: http.ServerResponse\n\nCreated internally when the `'request'` event is triggered by the `http.Server` class and\nrepresents the response sent by the server to a client.\n",
       "insertText": "setTimeout"
     },
     {
       "label": "end",
       "kind": 2,
       "detail": "response.end([data][, callback])",
-      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nFinishes sending the response.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the response stream is finished.\n",
+      "documentation": "* `data` {Buffer | string} Data which should be sent.\n* `callback` {Function}\n\nFinishes sending the response.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the response stream is finished.\n\nThe method should be called to correctly finish up a response.\nAny method which sets headers must be called before this method and before any `write` calls.\n",
       "insertText": "end"
     },
     {
       "label": "getHeader",
       "kind": 2,
       "detail": "response.getHeader(name)",
-      "documentation": "* `name` {string}\n\nReturns `name` field of response's header\n",
+      "documentation": "* `name` {string} Case-sensitive HTTP header field name.\n\nReturns the value of the `name` HTTP header field.\n",
       "insertText": "getHeader"
     },
     {
       "label": "removeHeader",
       "kind": 2,
       "detail": "response.removeHeader(name)",
-      "documentation": "* `name` {string}\n\nRemoves `name` field from response's header\n",
+      "documentation": "* `name` {string} Case-sensitive HTTP header field name.\n\nRemove the HTTP header which has the `name` field name.\nHTTP headers can not be modified after the first `write`, `writeHead` or `end` method call.\n",
       "insertText": "removeHeader"
     },
     {
       "label": "setHeader",
       "kind": 2,
       "detail": "response.setHeader(name, value)",
-      "documentation": "* `name` {string}\n* `value` {string}\n\nSets response's header field(`name`) to `value`. If the field exists, it overwrites the existing value.\n",
+      "documentation": "* `name` {string} The name of the HTTP header field to set.\n* `value` {string} The value of the field.\n\nSets response's header field(`name`) to `value`. If the field exists, it overwrites the existing value.\nHTTP headers can not be modified after the first `write`, `writeHead` or `end` method call.\n",
       "insertText": "setHeader"
     },
     {
@@ -817,58 +852,37 @@
       "label": "write",
       "kind": 2,
       "detail": "response.write(data[, callback])",
-      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a response body. `callback` will be called when data is flushed.\n",
+      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a response body. `callback` will be called when data is flushed.\n\nIt is advised to set at least the `Content-Length` HTTP header field correctly before\nany `write` calls. This is so the client could properly handle the server response.\n\nAfter a `write` method was called there is no possibility to change any headers.\n",
       "insertText": "write"
     },
     {
       "label": "writeHead",
       "kind": 2,
       "detail": "response.writeHead(statusCode[, statusMessage][, headers])",
-      "documentation": "* `statusCode` {number}\n* `statusMessage` {string}\n* `headers` {Object}\n\nSets response's header. `headers` is a map between field and value in header.\n\n\n## Class: http.ClientRequest\n\nThis object is created internally and returned from http.request(). It represents an in-progress request whose header has already been queued.\n",
+      "documentation": "* `statusCode` {number}\n* `statusMessage` {string} Optional. If not set the HTTP status message will be inferred from the status code.\n* `headers` {Object} Optional. An object containing HTTP header field names and values.\n\nSets response status code, the status message and configures a set of HTTP\nheader values.\n",
       "insertText": "writeHead"
-    },
-    {
-      "label": "abort",
-      "kind": 2,
-      "detail": "request.abort()",
-      "documentation": "Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.\n",
-      "insertText": "abort"
-    },
-    {
-      "label": "end",
-      "kind": 2,
-      "detail": "request.end([data][, callback])",
-      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nFinishes sending the request.\n\nIf `data` is provided, it sends `data` first, and finishes.\nIf `callback` is specified, it is called when the request stream is finished.\n",
-      "insertText": "end"
-    },
-    {
-      "label": "setTimeout",
-      "kind": 2,
-      "detail": "request.setTimeout(ms, cb)",
-      "documentation": "\n* `ms` {number}\n* `cb` {Function}\n\nRegisters cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.\n\nIf cb is not provided, the socket will be destroyed automatically after timeout.\nIf you provides cb, you should handle the socket's timeout.\n",
-      "insertText": "setTimeout"
-    },
-    {
-      "label": "write",
-      "kind": 2,
-      "detail": "request.write(data[, callback])",
-      "documentation": "* `data` {Buffer | string}\n* `callback` {Function}\n\nSends `data` as a request body. `callback` will be called when data is flushed.\n\n\n## Class: http.IncomingMessage\n\nThis object is created internally and returned to the callback in http.request(). It represents the response sent by a server to a request.\n\nhttp.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.\n\n",
-      "insertText": "write"
     }
   ],
   "https": [
     {
+      "label": "createServer",
+      "kind": 2,
+      "detail": "https.createServer([options][, requestListener])",
+      "documentation": "* `options` {Object} Accepts the same `options` as [tls.createServer](IoT.js-API-TLS.md#tlscreateserveroptions-secureconnectionlistener) and [http.createServer](IoT.js-API-HTTP.md#httpcreateserverrequestlistener) methods.\n* `requestListener` {Function}\n  * request {http.IncomingMessage}\n  * response {http.ServerResponse}\n* Returns: {https.Server}\n\nTo create a server the certificates should be specified via the `options` object.\n\nThe `requestListener` is a function which is automatically added to the `'request'` event.\n",
+      "insertText": "createServer"
+    },
+    {
       "label": "request",
       "kind": 2,
       "detail": "https.request(options[, callback])",
-      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n",
       "insertText": "request"
     },
     {
       "label": "get",
       "kind": 2,
       "detail": "https.get(options[, callback])",
-      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {https.IncomingMessage}\n* Returns: {https.ClientRequest}\n\nSame as `https.request` except that `https.get` automatically call `req.end()` at the end.\n",
+      "documentation": "* `options` {Object}\n  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.\n  * `hostname` {string} Alias for host.\n  * `port` {number} Port of remote server. **Default:** 443.\n  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.\n  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.\n  * `headers` {Object} An object containing request headers.\n  * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.\n  * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.\n  * `cert` {string} Optional file path to client authentication certificate in PEM format.\n  * `key` {string} Optional file path to private keys for client cert in PEM format.\n  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`\n* `callback` {Function}\n  * `response` {http.IncomingMessage}\n* Returns: {http.ClientRequest}\n\nSame as `https.request` except that `https.get` automatically call `req.end()` at the end.\n",
       "insertText": "get"
     }
   ],
@@ -1294,6 +1308,20 @@
       "insertText": "push"
     },
     {
+      "label": "pipe",
+      "kind": 2,
+      "detail": "readable.pipe(destination[, options])",
+      "documentation": "* `destination` {Writable|Duplex}\n* `options`\n  * `end` {bool} **Default: `true`**\n* returns: {Writable|Duplex}\n\nAttaches a Writable or Duplex stream to the Readable. Automatically\nswitches the Readable stream into flowing mode and pushes all of its\ndata into the attached Writable.\n",
+      "insertText": "pipe"
+    },
+    {
+      "label": "unpipe",
+      "kind": 2,
+      "detail": "readable.unpipe([destination])",
+      "documentation": "* `destination` {Writable|Duplex}\n* returns: `this`\n\nDetaches a previously attached stream from the Readable.\nIf the optional `destination` argument is not specified, all attached streams\nwill be detached.\nIf `destination` is specified but there is no pipe set up for it, then the\nmethod simply returns and does nothing.\n",
+      "insertText": "unpipe"
+    },
+    {
       "label": "end",
       "kind": 2,
       "detail": "writable.end([chunk[, callback]])",
@@ -1313,15 +1341,29 @@
       "label": "connect",
       "kind": 2,
       "detail": "tls.connect(options[,callback])",
-      "documentation": "- `options` {Object}\n    - `host` {string} Host the client should connect to, defaults to 'localhost'.\n    - `port` {number} Port the client should connect to.\n    - `socket` {stream.Duplex} Optional, typically an instance of `net.Socket`. If this options is specified, host and port are ignored. The user passing the options is responsible for it connecting to the server. `tls.connect` won't call `net.connect` on it.\n    - `rejectUnauthorized` {boolean} Whether the server certificate should be verified against the list of supplied CAs. An `error` event is emitted if verifications fails; `err.code` contains the MbedTLS error code. Defaults to `false`. NOT READY\n    - `servername` {string} Server name for the SNI (Server name Indication) TLS extension. NOT READY\n    - `session` {Buffer} A `Buffer` containing a TLS session. NOT READY\n    - `minDHSize` {number} The minimum size of the DH parameter in bits to accept a TLS connection. If a server offers a DH parameter with a size less than specified, the TLS connection is destroyed and an error is thrown. Defaults to `1024`.\n    - `lookup` {Function} Custom lookup. Defaults to `dns.lookup()`.\n- `callback` {Function} The callback function will be added as a listener for the `secureConnect` event.\n\nReturns a `tls.TLSSocket` object.\n",
+      "documentation": "* `options` {Object}\n    * `host` {string} Host the client should connect to, defaults to 'localhost'.\n    * `port` {number} Port the client should connect to.\n    * `socket` {stream.Duplex} Optional, typically an instance of `net.Socket`. If this options is specified, host and port are ignored. The user passing the options is responsible for it connecting to the server. `tls.connect` won't call `net.connect` on it.\n    * `rejectUnauthorized` {boolean} Whether the server certificate should be verified against the list of supplied CAs. An `error` event is emitted if verifications fails; `err.code` contains the MbedTLS error code. Defaults to `false`. NOT READY\n    * `servername` {string} Server name for the SNI (Server name Indication) TLS extension. NOT READY\n    * `session` {Buffer} A `Buffer` containing a TLS session. NOT READY\n    * `minDHSize` {number} The minimum size of the DH parameter in bits to accept a TLS connection. If a server offers a DH parameter with a size less than specified, the TLS connection is destroyed and an error is thrown. Defaults to `1024`.\n    * `lookup` {Function} Custom lookup. Defaults to `dns.lookup()`.\n* `callback` {Function} The callback function will be added as a listener for the `secureConnect` event.\n\nReturns a `tls.TLSSocket` object.\n",
       "insertText": "connect"
     },
     {
       "label": "connect",
       "kind": 2,
       "detail": "tls.connect(port[,host][,options][,callback])",
-      "documentation": "- `port` {number} Port the client should connect to.\n- `host` {string} Host the client should connect to, defaults to 'localhost'.\n- `options` {Object} See `tls.connect()`.\n- `callback` {Function} See `tls.connect()`.\n\nSame as tls.connect() except that port and host can be provided as arguments instead of options.\nA port or host option, if specified, will take precedence over any port or host argument.\n",
+      "documentation": "* `port` {number} Port the client should connect to.\n* `host` {string} Host the client should connect to, defaults to 'localhost'.\n* `options` {Object} See `tls.connect()`.\n* `callback` {Function} See `tls.connect()`.\n\nSame as tls.connect() except that port and host can be provided as arguments instead of options.\nA port or host option, if specified, will take precedence over any port or host argument.\n",
       "insertText": "connect"
+    },
+    {
+      "label": "createServer",
+      "kind": 2,
+      "detail": "tls.createServer([options][, secureConnectionListener])",
+      "documentation": "* `options` {object} Accepts the same options as the `tls.Server()` and `tls.createSecureContext()`.\n* `secureConnectionListener` {Function}\n  * `socket` {tls.TLSSocket} The connected TLSSocket.\n* Returns {tls.Server}\n\nCreate a TLS Server. Behaves the same way as the `new tls.Server(options, secureConnectionListener)`\ncall.\n",
+      "insertText": "createServer"
+    },
+    {
+      "label": "createSecureContext",
+      "kind": 2,
+      "detail": "tls.createSecureContext([options])",
+      "documentation": "* `options` {object}\n  * `ca` {string | Buffer} Optional trusted CA certificates. No default is provided.\n  * `cert` {string | Buffer} Cert chains in PEM format.\n  * `key` {string | Buffer} Private keys in PEM format.\n* Returns {Object}\n\nThe method returns a special object containing the tls context and credential information.\n\n## Class: tls.Server\n\nA server object repesenting a TLS server. Based on the `net.Server`.\nAll events, methods and properties are inherited from the `net.Server`.\n\n### new tls.Server([options][, secureConnectionListener])\n\n* `options` {object} Options for the TLS connection.\n  * `secureContext` {object} An special object containing the tls credential information.\n    This should be only created via a `tls.createSecureContext()` call if needed. If not provided\n    a secureContext will be created automatically, using the `options` object. No default value is provided.\n  * Additonal options are from `tls.createSecureContext()`.\n* `secureConnectionListener` {Function}\n  * `socket` {tls.TLSSocket}\n* Returns {tls.Server}\n\nCreates new `tls.Server` object. The `secureConnectionListener` method is automatically set\nas a listener for the `'secureConnection'` event.\n\nTo correctly create a TLS Server the server certificates should be provided in the `options`\nobject.\n",
+      "insertText": "createSecureContext"
     },
     {
       "label": "address",
