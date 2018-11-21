@@ -31,6 +31,8 @@ let lastModified = {
   mtime: undefined
 };
 
+let sources: string[];
+let pathArray = [];
 const defaultModules = [{
   link: 'process',
   mod: 'process',
@@ -129,34 +131,50 @@ const getListOfFiles = (): string[] => {
   return wsFiles;
 };
 
-const getProgramName = (): Thenable<string> => {
+const getProgramName = (): Thenable<string[]> => {
   return vscode.window.showQuickPick(getListOfFiles(), {
     placeHolder: 'Select a file you want to debug',
-    ignoreFocusOut: true
+    canPickMany: true,
+    ignoreFocusOut: true,
+    onDidSelectItem: item => {
+      if (pathArray.indexOf(item.toString()) === -1) {
+        pathArray.push(item.toString());
+      } else {
+        pathArray.splice(pathArray.indexOf(item.toString()), 1);
+      }
+    }
   });
 };
 
-const getProgramSource = (path: string): string => {
-  return fs.readFileSync(path, {
-    encoding: 'utf8',
-    flag: 'r'
+const getProgramSource = (path: string[]): string[] => {
+  return path.map((p) => {
+    return fs.readFileSync(p, {
+      encoding: 'utf8',
+      flag: 'r'
+    });
   });
+
 };
 
 const processCustomEvent = async (e: vscode.DebugSessionCustomEvent): Promise<any> => {
   switch (e.event) {
-    case 'waitForSource': {
+    case 'readSources': {
       if (vscode.debug.activeDebugSession) {
-        const pathName = await getProgramName().then(path => path);
-        const source = getProgramSource(pathName);
-
-        vscode.debug.activeDebugSession.customRequest('sendSource', {
-          program: {
-            name: pathName.split(path.delimiter).pop(),
-            source
-          }
-        });
+        await getProgramName().then(path => path);
+        sources = getProgramSource(pathArray);
+        e.event = 'sendNextSource';
+        processCustomEvent(e);
       }
+      return true;
+    }
+    case 'sendNextSource': {
+      vscode.debug.activeDebugSession.customRequest('sendSource', {
+        program: {
+          name: pathArray.pop(),
+          source: sources.pop(),
+          isLast: sources.length === 0
+        }
+      });
       return true;
     }
     default:

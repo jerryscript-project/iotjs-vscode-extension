@@ -180,6 +180,8 @@ absolute path to executable (e.g.:/path/to/iotjs/build/x86_64-linux/debug/bin/io
 After the engine is running you can start the debug session inside the extension host by pressing the `F5` key or click on the green triangle in the debug panel.
 If the client (VSCode extension) is connected then you have to see that file which is running inside the engine or if you started the engine in waiting mode you will get a prompt window where you can select that file what you want to running and then you can see where the execution is stopped. Now you can use the VSCode debug action bar to control the debug session.
 
+***Important note:*** When sending multiple sources to debug server, be aware that IoT.js compiles them in the order they are received, so the files containing `require` should be sent first and the files used by them after.
+
 ***Note:*** If you using the development version of this extension, you have to run the following commands for the first time in the extension directory:
 ```bash
 # Install the node modules

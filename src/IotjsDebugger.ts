@@ -532,7 +532,10 @@ class IotjsDebugSession extends DebugSession {
         this._protocolhandler.sendClientSource(args.program.name, args.program.source)
           .then(() => {
             this.log('Source has been sent to the engine.', LOG_LEVEL.SESSION);
-            this._sourceSendingOptions.state = SOURCE_SENDING_STATES.LAST_SENT;
+            this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
+            if (args.program.isLast) {
+              this._sourceSendingOptions.state = SOURCE_SENDING_STATES.LAST_SENT;
+            }
             this.sendResponse(response);
           })
           .catch(error => {
@@ -630,8 +633,10 @@ class IotjsDebugSession extends DebugSession {
     this.log('onWaitForSource', LOG_LEVEL.SESSION);
 
     if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.NOP) {
+      await this.sendEvent(new Event('readSources'));
       this._sourceSendingOptions.state = SOURCE_SENDING_STATES.WAITING;
-      this.sendEvent(new Event('waitForSource'));
+    } else if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.WAITING) {
+      this.sendEvent(new Event('sendNextSource'));
     } else if (this._sourceSendingOptions.state === SOURCE_SENDING_STATES.LAST_SENT) {
       if (!this._sourceSendingOptions.contextReset) {
         this._sourceSendingOptions.state = SOURCE_SENDING_STATES.NOP;
