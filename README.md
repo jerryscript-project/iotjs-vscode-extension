@@ -34,6 +34,7 @@
     - Handle source receive from the engine
     - Sending source code from the vscode to the engine
     - Automatic IoT.js debug server launch
+    - Multiple source handling
 
 - Language support
   - Available features:
