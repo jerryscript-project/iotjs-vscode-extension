@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.11.0
+- Added features:
+  - Multiple source handling
+
+- Updates and fixes:
+  - Update the IoT.js module functions
+
 ## Version 0.10.0
 - Added supports for debugging:
   - Update debugger version to accommodate changes in IoT.js
