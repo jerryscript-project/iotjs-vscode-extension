@@ -51,7 +51,7 @@
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "copy": "cp ./src/IotjsFunctions.json ./tools/setup.sh ./tools/InstallTizenApp.sh ./tools/CreateTizenProject.sh ./out/",
+    "copy": "cp ./src/IotjsFunctions.json ./out/",
     "compile": "tsc -p ./ && npm run copy",
     "watch": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
@@ -59,29 +59,34 @@
   },
   "devDependencies": {
     "@types/mocha": "^5.2.6",
-    "@types/node": "^11.13.0",
-    "@types/sinon": "^7.0.11",
-    "@types/ws": "^6.0.1",
+    "@types/node": "^10.14.4",
+    "@types/sinon": "^4.3.3",
+    "@types/ws": "^4.0.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
-    "sinon": "^7.3.1",
+    "sinon": "^5.1.1",
     "tslint": "^5.15.0",
-    "typescript": "^3.4.1",
+    "typescript": "^2.9.2",
     "vscode": "^1.1.33"
   },
   "dependencies": {
+    "@types/ncp": "^2.0.1",
+    "all-unpacker": "^0.1.2",
     "babel-preset-env": "^1.7.0",
+    "ncp": "^2.0.0",
     "node-ssh": "^5.1.2",
-    "vscode-debugadapter": "^1.29.0",
+    "rimraf": "^2.6.3",
+    "vscode-debugadapter": "^1.34.0",
     "vscode-debugprotocol": "^1.34.0",
-    "ws": "^6.2.1"
+    "ws": "^5.2.2"
   },
   "activationEvents": [
     "*",
     "onLanguage:javascript",
     "onDebug",
     "onCommand:iotjs-debug.initialConfigurations",
-    "onCommand:iotjs-debug.createTizenProject"
+    "onCommand:iotjs-debug.createTizenProject",
+    "onCommand:iotjs-debug.buildAndInstall"
   ],
   "main": "./out/extension.js",
   "files": [
@@ -92,12 +97,20 @@
       {
         "command": "iotjs-debug.createTizenProject",
         "title": "Create IoT.js Tizen Project"
+      },
+      {
+        "command": "iotjs-debug.buildAndInstall",
+        "title": "Build and Install"
       }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "iotjs-debug.createTizenProject",
+          "group": "navigation"
+        },
+        {
+          "command": "iotjs-debug.buildAndInstall",
           "group": "navigation"
         }
       ]
@@ -162,12 +175,12 @@
                 "description": "Absolute path to Tizen Studio.",
                 "default": null
               },
-              "IoTjsPath": {
+              "rpmPath": {
                 "type": [
                   "string",
                   "null"
                 ],
-                "description": "Absolute path to IoTjs.",
+                "description": "Absolute path to IoT.js Tizen rpm package.",
                 "default": null
               }
             }
@@ -229,12 +242,12 @@
                 "description": "Absolute path to Tizen Studio.",
                 "default": null
               },
-              "IoTjsPath": {
+              "rpmPath": {
                 "type": [
                   "string",
                   "null"
                 ],
-                "description": "Absolute path to IoTjs.",
+                "description": "Absolute path to IoT.js Tizen rpm package.",
                 "default": null
               }
             }
@@ -252,6 +265,7 @@
               "port": 5001,
               "localRoot": "${workspaceRoot}",
               "tizenStudioPath": "",
+              "rpmPath": "",
               "stopOnEntry": false,
               "debugLog": 0
             }
@@ -267,7 +281,7 @@
               "stopOnEntry": false,
               "localRoot": "${workspaceRoot}",
               "tizenStudioPath": "",
-              "IoTjsPath": "",
+              "rpmPath": "",
               "port": 5001,
               "address": "localhost",
               "debugLog": 0,

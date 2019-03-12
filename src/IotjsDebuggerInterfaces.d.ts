@@ -33,8 +33,9 @@ export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArgu
   provideSource: boolean;
   /** Absolute path to Tizen Studio.*/
   tizenStudioPath?: string;
-  /** Absolute path to IoTjs. */
-  IoTjsPath?: string;
+  /** Absolute path to IoT.js rpm package. */
+  rpmPath?: string;
+
 }
 
 export interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -54,8 +55,8 @@ export interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArgu
   port: number;
   /** Absolute path to Tizen Studio. */
   tizenStudioPath?: string;
-  /** Absolute path to IoTjs. */
-  IoTjsPath?: string;
+  /** Absolute path to IoT.js rpm package. */
+  rpmPath?: string;
 }
 
 export interface SourceSendingOptions {
