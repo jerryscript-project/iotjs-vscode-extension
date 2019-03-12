@@ -172,15 +172,6 @@ class IotjsDebugSession extends DebugSession {
             this.log(result.stderr);
           });
         });
-        if (args.tizenStudioPath && args.IoTjsPath && args.localRoot) {
-          const appInstallPath = Path.join(__dirname, './InstallTizenApp.sh');
-          const tizenAppInstall = Cp.spawn(appInstallPath, [args.tizenStudioPath,
-                                                            args.localRoot,
-                                                            args.address]);
-          tizenAppInstall.stdout.on('data', InstallLog => {
-            this.log(InstallLog.toString(), LOG_LEVEL.VERBOSE);
-          });
-        }
       }
     };
     if (args.program) {
