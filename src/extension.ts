@@ -184,7 +184,7 @@ const processCustomEvent = async (e: vscode.DebugSessionCustomEvent): Promise<an
 
 const lookForModules = (source: string) => {
   const rm = /^(var|let|const)?\s*([a-zA-Z0-9$_]+)\s*=[\s|\n]*require\s*\(\s*['"]([a-zA-Z0-9$_]+)['"]\s*\);?$/;
-  return source.split('\n').filter(line => rm.test(line)).map(m => {
+  return source.split(/\r?\n/g).filter(line => rm.test(line)).map(m => {
     const match = rm.exec(m);
 
     return {
@@ -264,7 +264,7 @@ const getPath = async () => {
   tizenStudioPath = undefined;
   await vscode.workspace.findFiles('**/launch.json')
   .then(files => {
-    lastModified.filePath = files[0].path;
+    lastModified.filePath = files[0].fsPath;
     fs.stat(lastModified.filePath, (err, stats) => {
       lastModified.mtime = stats.mtime;
     });
