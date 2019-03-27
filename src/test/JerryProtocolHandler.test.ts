@@ -580,13 +580,13 @@ suite('JerryProtocolHandler', () => {
     test('throws error on invalid scriptId (0)', () => {
       const scriptId = 0;
       const handler = new JerryDebugProtocolHandler({});
-      assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+      assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid scriptId');
     });
 
     test('throws error on invalid scriptId (greater than linelist length)', () => {
       const scriptId = 4;
       const handler = new JerryDebugProtocolHandler({});
-      assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+      assert.throws(() => handler.getActiveFunctionBreakpointsByScriptId(scriptId), 'invalid scriptId');
     });
 
     test('return an empty array in case of no active functionbreakpoints', () => {
@@ -647,13 +647,13 @@ suite('JerryProtocolHandler', () => {
     test('throws error on invalid scriptId (0)', () => {
       const scriptId = 0;
       const handler = new JerryDebugProtocolHandler({});
-      assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+      assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid scriptId');
     });
 
     test('throws error on invalid scriptId (greater than linelist length)', () => {
       const scriptId = 10;
       const handler = new JerryDebugProtocolHandler({});
-      assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid script id');
+      assert.throws(() => handler.getInactiveFunctionBreakpointsByScriptId(scriptId), 'invalid scriptId');
     });
 
     test('return an empty array in case of no inactive functionbreakpoints', () => {
