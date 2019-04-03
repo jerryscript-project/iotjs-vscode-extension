@@ -215,7 +215,8 @@ export class JerryDebugProtocolHandler {
       [SP.SERVER.JERRY_DEBUGGER_SCOPE_CHAIN]: this.onScopeChain,
       [SP.SERVER.JERRY_DEBUGGER_SCOPE_CHAIN_END]: this.onScopeChainEnd,
       [SP.SERVER.JERRY_DEBUGGER_SCOPE_VARIABLES]: this.onScopeVariables,
-      [SP.SERVER.JERRY_DEBUGGER_SCOPE_VARIABLES_END]: this.onScopeVariablesEnd
+      [SP.SERVER.JERRY_DEBUGGER_SCOPE_VARIABLES_END]: this.onScopeVariablesEnd,
+      [SP.SERVER.JERRY_DEBUGGER_CLOSE_CONNECTION]: this.onCloseConnection
     };
 
     this.requestQueue = [];
@@ -793,6 +794,11 @@ export class JerryDebugProtocolHandler {
       if (request) request.reject(`unhandled protocol message type: ${message[0]}`);
       this.abort(`unhandled protocol message type: ${message[0]}`);
     }
+  }
+  public onCloseConnection(): void {
+    this.logPacket('Close connection');
+
+    this.debuggerClient.disconnect();
   }
 
   public getLastBreakpoint(): Breakpoint {
