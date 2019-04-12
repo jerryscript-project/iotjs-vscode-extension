@@ -21,6 +21,10 @@ export interface IAttachRequestArguments extends DebugProtocol.AttachRequestArgu
   address: string;
   /** Debug port to attach to. */
   port: number;
+  /** Specify the communication protocol. */
+  protocol: string;
+  /** Configure parameters for serial port. */
+  serialConfig: string;
   /** VSCode's root directory. */
   localRoot: string;
   /** Automatically stop target after launch. */
@@ -53,6 +57,10 @@ export interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArgu
   address: string;
   /** Debug port.*/
   port: number;
+  /** Specify the communication protocol. */
+  protocol: string;
+  /** Configure parameters for serial port. */
+  serialConfig: string;
   /** Absolute path to Tizen Studio. */
   tizenStudioPath?: string;
   /** Absolute path to IoT.js rpm package. */

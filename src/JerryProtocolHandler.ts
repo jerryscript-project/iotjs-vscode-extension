@@ -21,7 +21,8 @@ import {
   ByteConfig, cesu8ToString, assembleUint8Arrays,
   decodeMessage, encodeMessage, stringToCesu8, setUint32
 } from './JerryUtils';
-import { JerryDebuggerClient } from './JerryDebuggerClient';
+import { JerryDebuggerWSClient } from './JerryDebuggerWSClient';
+import { JerryDebuggerSerialClient } from './JerryDebuggerSerialClient';
 import { LOG_LEVEL } from './IotjsDebuggerConstants';
 
 export type CompressedPointer = number;
@@ -137,7 +138,7 @@ export interface JerryScopeVariable {
 
 // abstracts away the details of the protocol
 export class JerryDebugProtocolHandler {
-  public debuggerClient?: JerryDebuggerClient;
+  public debuggerClient?: JerryDebuggerWSClient | JerryDebuggerSerialClient;
   private delegate: JerryDebugProtocolDelegate;
 
   // debugger configuration
@@ -795,6 +796,7 @@ export class JerryDebugProtocolHandler {
       this.abort(`unhandled protocol message type: ${message[0]}`);
     }
   }
+
   public onCloseConnection(): void {
     this.logPacket('Close connection');
 
@@ -1055,6 +1057,11 @@ export class JerryDebugProtocolHandler {
   }
 
   private submitRequest(request: PendingRequest, simple: boolean = false): boolean {
+    if (this.debuggerClient.protocol === 'serial') {
+      let arrayBufferConcat = require('arraybuffer-concat');
+      request.data = arrayBufferConcat(encodeMessage(this.byteConfig, 'B', [request.data.byteLength]), request.data);
+    }
+
     if (!this.debuggerClient!.send(request.data)) return false;
     if (!simple) this.currentRequest = request;
     return true;
