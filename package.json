@@ -59,9 +59,12 @@
   },
   "devDependencies": {
     "@types/mocha": "^5.2.6",
-    "@types/node": "^10.14.4",
-    "@types/sinon": "^4.3.3",
-    "@types/ws": "^4.0.2",
+    "@types/node": "^11.13.0",
+    "@types/serialport": "^7.0.2",
+    "@types/sinon": "^7.0.11",
+    "@types/ws": "^6.0.1",
+    "arraybuffer-concat": "0.0.1",
+    "arraybuffer-to-buffer": "0.0.5",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "sinon": "^5.1.1",
@@ -76,6 +79,7 @@
     "ncp": "^2.0.0",
     "node-ssh": "^5.1.2",
     "rimraf": "^2.6.3",
+    "serialport": "^7.1.4",
     "vscode-debugadapter": "^1.34.0",
     "vscode-debugprotocol": "^1.34.0",
     "ws": "^5.2.2"
@@ -148,6 +152,16 @@
                 "type": "number",
                 "description": "Debug port to attach to. Default is 5001.",
                 "default": 5001
+              },
+              "protocol": {
+                "type": "string",
+                "description": " Specify the communication protocol. Default is 'tcp'.",
+                "default": "tcp"
+              },
+              "serialConfig": {
+                "type": "string",
+                "description": "Configure parameters for serial port.",
+                "default": "/dev/ttyUSB0,115200,8,N,1"
               },
               "localRoot": {
                 "type": [
@@ -234,6 +248,16 @@
                 "description": "Debug port.",
                 "default": 5001
               },
+              "protocol": {
+                "type": "string",
+                "description": " Specify the communication protocol. Default is 'tcp'.",
+                "default": "tcp"
+              },
+              "serialConfig": {
+                "type": "string",
+                "description": "Configure parameters for serial port.",
+                "default": "/dev/ttyUSB0,115200,8,N,1"
+              },
               "tizenStudioPath": {
                 "type": [
                   "string",
@@ -263,6 +287,8 @@
               "request": "attach",
               "address": "localhost",
               "port": 5001,
+              "protocol": "tcp",
+              "serialConfig": "/dev/ttyUSB0,115200,8,N,1",
               "localRoot": "${workspaceRoot}",
               "tizenStudioPath": "",
               "rpmPath": "",
@@ -283,6 +309,8 @@
               "tizenStudioPath": "",
               "rpmPath": "",
               "port": 5001,
+              "protocol": "tcp",
+              "serialConfig": "/dev/ttyUSB0,115200,8,N,1",
               "address": "localhost",
               "debugLog": 0,
               "args": [

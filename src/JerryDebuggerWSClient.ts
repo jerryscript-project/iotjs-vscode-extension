@@ -17,7 +17,7 @@
 
 import * as WebSocket from 'ws';
 
-export interface JerryDebuggerOptions {
+export interface JerryDebuggerWSOptions {
   delegate: JerryDebuggerDelegate;
   host?: string;
   port?: number;
@@ -31,17 +31,19 @@ export interface JerryDebuggerDelegate {
 export const DEFAULT_DEBUGGER_HOST = 'localhost';
 export const DEFAULT_DEBUGGER_PORT = 5001;
 
-export class JerryDebuggerClient {
+export class JerryDebuggerWSClient {
   readonly host: string;
   readonly port: number;
+  readonly protocol: string;
   private socket?: WebSocket;
   private connectPromise?: Promise<void>;
   private delegate: JerryDebuggerDelegate;
 
-  constructor(options: JerryDebuggerOptions) {
+  constructor(options: JerryDebuggerWSOptions) {
     this.delegate = options.delegate;
     this.host = options.host || DEFAULT_DEBUGGER_HOST;
     this.port = options.port || DEFAULT_DEBUGGER_PORT;
+    this.protocol = 'tcp';
   }
 
   public connect(): Promise<void> {
@@ -89,7 +91,7 @@ export class JerryDebuggerClient {
     }
   }
 
-  public send(data: Uint8Array): boolean {
+  public send(data: any): boolean {
     this.socket!.send(data, () => {
       return false;
     });

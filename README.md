@@ -12,7 +12,7 @@
 - [License](#license)
 
 # Introduction
-`IoT.js VSCode Extension` is a debugger and language (like intelliSense, hover, ...) extension for [Visual Studio Code](https://code.visualstudio.com/) that lets you debug the code which is running on a device, lets you upload your code to the device, directly from the VSCode over websocket communication and helps you to write code with [IoT.js](https://github.com/Samsung/iotjs).
+`IoT.js VSCode Extension` is a debugger and language (like intelliSense, hover, ...) extension for [Visual Studio Code](https://code.visualstudio.com/) that lets you debug the code which is running on a device, lets you upload your code to the device, directly from the VSCode over websocket communication (it is default, you can choose serial communication also) and helps you to write code with [IoT.js](https://github.com/Samsung/iotjs).
 
 # Features
 - Debugger
@@ -76,6 +76,8 @@ These configuration options are required. Manifest:
 - `request`: Type of the session start
 - `address`: IP address on which the server listening. Default is `localhost`
 - `port`: Debug port to attach to. Default is `5001`
+- `protocol`:  Specify the communication protocol. Default is `tcp`
+- `serialConfig`: Configure parameters for serial port. Default is `/dev/ttyUSB0,115200,8,N,1`,
 - `localRoot`: The local source root directoy, most cases this is the `${workspaceRoot}`
 - `stopOnEntry`: Autmoatically stop the program after launch, the IoT.js will stop on the first breakpoint for now, no matter that is enabled or not.
 - `debugLog`: The type of the debug log, you can choose from 0 to 4:
@@ -104,8 +106,11 @@ $ ./tools/build.py --buildtype=debug --jerry-debugger --no-snapshot
 # Run the IoT.js with the following switches
 $ ./build/x86_64-linux/debug/bin/iotjs --start-debug-server {file}
 
-# To run with diferent port (the default is 5001)
+# To run with diferent port via tcp protocol (the default is 5001)
 $ ./build/x86_64-linux/debug/bin/iotjs --start-debug-server --jerry-debugger-port={number} {file}
+
+# To run with via serial protocol with different serial configuration (default is /dev/ttyS0,115200,8,N,1)
+$ ./build/x86_64-linux/debug/bin/iotjs --start-debug-server --debug-channel=rawpacket --debug-protocol=serial --debug-serial-config="/dev/ttyUSB0,9600,7,N,1"  {file}
 
 # To run with show opcodes
 $ ./build/x86_64-linux/debug/bin/iotjs --start-debug-server --show-opcodes {file}
