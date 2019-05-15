@@ -140,6 +140,34 @@
       "insertText": "concat"
     },
     {
+      "label": "from",
+      "kind": 2,
+      "detail": "Buffer.from(array)",
+      "documentation": "* `array` {Array} Array of numbers.\n* Returns: {Buffer} containing the elements from `array`\n\nCreates a new Buffer from an array of numbers. The numbers are converted to integers first and their modulo 256 remainder is used for constructing the buffer.\n",
+      "insertText": "from"
+    },
+    {
+      "label": "from",
+      "kind": 2,
+      "detail": "Buffer.from(string[,encoding])",
+      "documentation": "* `str` {String} Source string.\n* `encoding` {String} Encoding format.\n* Returns: {Buffer} containing the elements from `str`\n\nCreates a new buffer which contains the CESU-8 representation of the str string argument. If encoding optional argument is present its value must be hex. When this encoding is specified the str argument must be a sequence of hexadecimal digit pairs, and these pairs are converted to bytes.\n",
+      "insertText": "from"
+    },
+    {
+      "label": "from",
+      "kind": 2,
+      "detail": "Buffer.from(buffer)",
+      "documentation": "* `buffer` {Buffer} Source buffer.\n* Returns: {Buffer} which is the copy of `buffer`\nCreates a copy of an existing buffer. The buffer data is not shared between the two buffers.\n",
+      "insertText": "from"
+    },
+    {
+      "label": "from",
+      "kind": 2,
+      "detail": "Buffer.from(arrayBuffer[, byteOffset[, length]])",
+      "documentation": "* `arrayBuffer` {ArrayBuffer} Arraybuffer, or a buffer of a TypedArray\n* `byteOffset` {Number} Index of first byte to expose. Default: 0.\n* `length` {Number} Number of bytes to expose. Default: arrayBuffer.length - byteOffset.\n* Returns: {Buffer} containing the data of `arraybuffer` from read `offset` with `length`\n",
+      "insertText": "from"
+    },
+    {
       "label": "isBuffer",
       "kind": 2,
       "detail": "Buffer.isBuffer(obj)",
@@ -403,14 +431,14 @@
       "label": "addListener",
       "kind": 2,
       "detail": "emitter.addListener(event, listener)",
-      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nIt is an alias for `emitter.on(eventName, listener)`.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {EventEmitter}.\n\nIt is an alias for `emitter.on(eventName, listener)`.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
       "insertText": "addListener"
     },
     {
       "label": "on",
       "kind": 2,
       "detail": "emitter.on(event, listener)",
-      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {EventEmitter}.\n\nAdds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.\nIn case of multiple calls the `listener` will be added and called multiple times.\n",
       "insertText": "on"
     },
     {
@@ -424,21 +452,21 @@
       "label": "once",
       "kind": 2,
       "detail": "emitter.once(event, listener)",
-      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nAdds the `listener` as a one time listener for the `event`.\n\nUsing this method, it is possible to register a listener that is called at most once for a particular `event`.\nThe listener will be invoked only once, when the first `event` is emitted.\n",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {EventEmitter}.\n\nAdds the `listener` as a one time listener for the `event`.\n\nUsing this method, it is possible to register a listener that is called at most once for a particular `event`.\nThe listener will be invoked only once, when the first `event` is emitted.\n",
       "insertText": "once"
     },
     {
       "label": "removeListener",
       "kind": 2,
       "detail": "emitter.removeListener(event, listener)",
-      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {events.EventEmitter}.\n\nRemoves `listener` from the list of event listeners.\n\nIf you add the same `listener` multiple times, this removes only one instance of them.\n",
+      "documentation": "* `event` {string} The name of the event.\n* `listener` {Function} The callback function.\n  * `args` {any}.\n* Returns `emitter` {EventEmitter}.\n\nRemoves `listener` from the list of event listeners.\n\nIf you add the same `listener` multiple times, this removes only one instance of them.\n",
       "insertText": "removeListener"
     },
     {
       "label": "removeAllListeners",
       "kind": 2,
       "detail": "emitter.removeAllListeners([event])",
-      "documentation": "* `event` {string} The name of the event.\n* Returns `emitter` {events.EventEmitter}.\n\nRemoves all listeners.\n\nIf `event` was specified, it only removes the listeners for that event.\n",
+      "documentation": "* `event` {string} The name of the event.\n* Returns `emitter` {EventEmitter}.\n\nRemoves all listeners.\n\nIf `event` was specified, it only removes the listeners for that event.\n",
       "insertText": "removeAllListeners"
     }
   ],
@@ -470,6 +498,13 @@
       "detail": "fs.closeSync(fd)",
       "documentation": "* `fd` {integer} File descriptor.\n\nCloses the file of `fd` synchronously.\n",
       "insertText": "closeSync"
+    },
+    {
+      "label": "createReadStream",
+      "kind": 2,
+      "detail": "fs.createReadStream(path[, options])",
+      "documentation": "* `path` {string} File path to open for reading.\n* `options` {Object}\n  * `flags` {string} Flags to open file with. **Default:** `'r'`\n  * `encoding` {string} **Default:** `null`\n  * `fd` {integer} File descriptor to be used. **Default:** `null`\n  * `mode` {integer} Permission mode. **Default:** `0666`\n  * `autoClose` {boolean} Should the file be closed automatically. **Default:** `true`\n  * `bufferSize` {integer} Size of buffer in bytes. **Default:** `4096`\n* Returns: `fs.ReadStream`\n\nIf `fd` is specified, `path` will be ignored and the specified file\ndescriptor will be used instead.\n\nIf `autoClose` is `false`, the file will not be closed automatically,\neven if there is an error, it will be the application's responsibility.\nIf it is `true` (as by default), the file will be closed automatically\nwhen end of file is reached or the stream ends.\n",
+      "insertText": "createReadStream"
     },
     {
       "label": "exists",
@@ -990,6 +1025,7 @@
       "insertText": "require"
     }
   ],
+  "n-api": [],
   "net": [
     {
       "label": "connect",
