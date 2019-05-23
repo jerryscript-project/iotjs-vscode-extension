@@ -2,7 +2,7 @@
 
 
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
-[![Build Status](https://travis-ci.org/Samsung/iotjs-vscode-extension.svg?branch=master)](https://travis-ci.org/Samsung/iotjs-vscode-extension)
+[![Build Status](https://travis-ci.org/pando-devs/iotjs-vscode-extension.svg?branch=master)](https://travis-ci.org/pando-devs/iotjs-vscode-extension)
 
 - [Introduction](#introduction)
 - [Features](#features)
