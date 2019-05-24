@@ -27,7 +27,8 @@ import * as Util from 'util';
 import * as Cp from 'child_process';
 import * as NodeSSH from 'node-ssh';
 import { IAttachRequestArguments, ILaunchRequestArguments, SourceSendingOptions, TemporaryBreakpoint } from './IotjsDebuggerInterfaces';
-import { JerryDebuggerClient, JerryDebuggerOptions } from './JerryDebuggerClient';
+import { JerryDebuggerWSClient, JerryDebuggerWSOptions } from './JerryDebuggerWSClient';
+import { JerryDebuggerSerialClient, JerryDebuggerSerialOptions } from './JerryDebuggerSerialClient';
 import {
   JerryDebugProtocolDelegate, JerryDebugProtocolHandler, JerryMessageScriptParsed, JerryEvalResult,
   JerryMessageExceptionHit, JerryMessageBreakpointHit, JerryBacktraceResult, JerryScopeVariable, JerryScopeChain
@@ -45,7 +46,7 @@ class IotjsDebugSession extends DebugSession {
   private _launchArgs: ILaunchRequestArguments;
   private _iotjsProcess: Cp.ChildProcess;
   private _debugLog: number = 0;
-  private _debuggerClient: JerryDebuggerClient;
+  private _debuggerClient: JerryDebuggerWSClient | JerryDebuggerSerialClient;
   private _protocolhandler: JerryDebugProtocolHandler;
   private _sourceSendingOptions: SourceSendingOptions;
   private _variableHandles = new Handles<string>();
@@ -99,7 +100,6 @@ class IotjsDebugSession extends DebugSession {
   }
 
   protected attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
-
     if (!args.address || args.address === '') {
       this.sendErrorResponse(response, new Error('Must specify an address'));
       return;
@@ -121,12 +121,10 @@ class IotjsDebugSession extends DebugSession {
     } else {
       this.sendErrorResponse(response, new Error('No log level given'));
     }
-
     this.connectToDebugServer(response, args);
   }
 
   protected launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
-
     if (!args.address || args.address === '') {
       this.sendErrorResponse(response, new Error('Must specify an address'));
       return;
@@ -194,19 +192,37 @@ class IotjsDebugSession extends DebugSession {
     this._protocolhandler = new JerryDebugProtocolHandler(
       protocolDelegate, (message: any, level: number = LOG_LEVEL.VERBOSE) => this.log(message, level)
     );
-    this._debuggerClient = new JerryDebuggerClient(<JerryDebuggerOptions>{
-      delegate: {
-        onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
-        onClose: () => this.onClose()
-      },
-      host: args.address,
-      port: args.port
-    });
+
+    if (args.protocol === 'tcp') {
+      this._debuggerClient = new JerryDebuggerWSClient(<JerryDebuggerWSOptions>{
+        delegate: {
+          onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
+          onClose: () => this.onClose()
+        },
+        host: args.address,
+        port: args.port
+      });
+    } else if (args.protocol === 'serial') {
+      this._debuggerClient = new JerryDebuggerSerialClient(<JerryDebuggerSerialOptions>{
+        delegate: {
+          onMessage: (message: Uint8Array) => this._protocolhandler.onMessage(message),
+          onClose: () => this.onClose()
+        },
+        serialConfig: args.serialConfig
+      });
+    } else {
+      this.sendErrorResponse(response, new Error('Unsupported debugger protocol'));
+    }
+
     this._protocolhandler.debuggerClient = this._debuggerClient;
 
     this._debuggerClient.connect()
     .then(() => {
-      this.log(`Connected to: ${args.address}:${args.port}`, LOG_LEVEL.SESSION);
+      if (args.protocol === 'websocket') {
+        this.log(`Connected to: ${args.address}:${args.port}`, LOG_LEVEL.SESSION);
+      } else {
+        this.log(`Connected via serial port`, LOG_LEVEL.SESSION);
+      }
       this.sendResponse(response);
     })
     .catch(error => {
